@@ -1,7 +1,7 @@
-
 # TourneyRadar API
 
-A free, open-source REST API for chess tournament data worldwide. No authentication required.
+A free, open-source REST API for over-the-board chess tournament data. 
+No authentication required. No API key needed.
 
 **Base URL:** `https://tourneyradar-api.vercel.app`
 
@@ -54,7 +54,7 @@ GET /v1/tournaments?country=IN&upcoming=true&limit=5
   "meta": {
     "page": 1,
     "limit": 5,
-    "total": 847,
+    "total": 248,
     "hasMore": true
   }
 }
@@ -69,11 +69,18 @@ Returns a single tournament by ID.
 **Example:**
 GET /v1/tournaments/cr_1371843
 
+**Response:**
+```json
+{
+  "data": { ...full tournament object }
+}
+```
+
 ---
 
 ### GET /v1/countries
 
-Returns all countries with tournament data.
+Returns all countries that have tournament data.
 
 **Example:**
 GET /v1/countries
@@ -92,23 +99,26 @@ GET /v1/countries
 
 ## Rate limiting
 
-60 requests per minute per IP. Responses include:
-- `X-RateLimit-Limit` — your limit
-- `X-RateLimit-Remaining` — requests left in current window
+60 requests per minute per IP.
+
+Responses include rate limit headers:
+- `X-RateLimit-Limit`
+- `X-RateLimit-Remaining`
 
 ---
 
 ## Quick start
 
+**JavaScript / TypeScript**
 ```js
-// Get upcoming tournaments in India
 const res = await fetch(
   'https://tourneyradar-api.vercel.app/v1/tournaments?country=IN&upcoming=true'
 )
 const { data, meta } = await res.json()
-console.log(`Found ${meta.total} upcoming tournaments in India`)
+console.log(`Found ${meta.total} tournaments`)
 ```
 
+**Python**
 ```python
 import requests
 
@@ -119,12 +129,17 @@ res = requests.get(
 data = res.json()
 ```
 
+**curl**
+```bash
+curl "https://tourneyradar-api.vercel.app/v1/tournaments?country=US&upcoming=true"
+```
+
 ---
 
-## Data source
+## Data
 
-Tournament data is scraped weekly from [Chess-Results.com](https://chess-results.com) 
-and geocoded via Google Maps. Currently covers 23 countries with 1,900+ tournaments.
+Tournament data is scraped weekly from [Chess-Results.com](https://chess-results.com)
+and geocoded via the Google Maps API. Coverage grows with every weekly scrape run.
 
 ---
 
@@ -137,10 +152,18 @@ and geocoded via Google Maps. Currently covers 23 countries with 1,900+ tourname
 ## Related
 
 - [TourneyRadar](https://github.com/AnayDhawan/tourneyradar) — the interactive 
-  map that uses this API
+  world map powered by this API
+
+---
+
+## Contributing
+
+Contributions welcome. Please open an issue before submitting a PR for significant changes.
 
 ---
 
 ## License
 
-MIT
+MIT — see [LICENSE](./LICENSE)
+
+---
