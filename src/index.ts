@@ -1,9 +1,13 @@
 import { Hono } from 'hono'
 import { serve } from '@hono/node-server'
+import { inject } from '@vercel/analytics'
 import { corsMiddleware } from './middleware/cors'
 import { rateLimit } from './middleware/rateLimit'
 import tournaments from './routes/tournaments'
 import countries from './routes/countries'
+
+// Initialize Vercel Analytics
+inject()
 
 const app = new Hono()
 
