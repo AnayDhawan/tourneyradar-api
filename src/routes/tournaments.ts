@@ -10,7 +10,7 @@ const listSchema = z.object({
   category: z.enum(['Classical', 'Rapid', 'Blitz']).optional(),
   upcoming: z.coerce.boolean().optional(),
   fide_rated: z.coerce.boolean().optional(),
-  limit: z.coerce.number().min(1).max(100).default(50),
+  limit: z.coerce.number().min(1).max(1000).default(50),
   page: z.coerce.number().min(1).default(1),
 })
 
