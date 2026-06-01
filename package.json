@@ -1,7 +1,7 @@
 {
   "name": "tourneyradar-api",
   "version": "1.0.0",
-  "type": "module",
+  "type": "commonjs",
   "description": "",
   "main": "index.js",
   "scripts": {
