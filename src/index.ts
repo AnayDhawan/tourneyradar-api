@@ -1,14 +1,12 @@
 import { Hono } from 'hono'
 import { serve } from '@hono/node-server'
 import { corsMiddleware } from './middleware/cors'
-import { rateLimit } from './middleware/rateLimit'
 import tournaments from './routes/tournaments'
 import countries from './routes/countries'
 
 const app = new Hono()
 
 app.use('*', corsMiddleware)
-app.use('*', rateLimit)
 
 app.get('/', (c) => c.json({
   name: 'TourneyRadar API',
