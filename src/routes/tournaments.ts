@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase'
 const tournaments = new Hono()
 
 const listSchema = z.object({
-  country: z.string().length(3).toUpperCase().optional(),
+  country: z.string().length(2).toUpperCase().optional(),
   category: z.enum(['Classical', 'Rapid', 'Blitz']).optional(),
   upcoming: z.coerce.boolean().optional(),
   fide_rated: z.coerce.boolean().optional(),
