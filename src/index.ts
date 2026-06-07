@@ -3,6 +3,7 @@ import { serve } from '@hono/node-server'
 import { corsMiddleware } from './middleware/cors'
 import tournaments from './routes/tournaments'
 import countries from './routes/countries'
+import search from './routes/search'
 
 const app = new Hono()
 
@@ -16,11 +17,13 @@ app.get('/', (c) => c.json({
     'GET /v1/tournaments',
     'GET /v1/tournaments/:id',
     'GET /v1/countries',
+    'GET /v1/search?q=',
   ]
 }))
 
 app.route('/v1/tournaments', tournaments)
 app.route('/v1/countries', countries)
+app.route('/v1/search', search)
 
 app.notFound((c) => c.json({ error: 'Not found', status: 404 }, 404))
 app.onError((err, c) => {
