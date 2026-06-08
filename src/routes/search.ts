@@ -14,15 +14,18 @@ const searchSchema = z.object({
 search.get('/', zValidator('query', searchSchema), async (c) => {
     const { q, limit, page } = c.req.valid('query')
     const offset = (page - 1) * limit
-    const searchPattern = `%${q}%`
+
+    // Strip PostgREST filter control characters from user input so they cannot
+    // break the .or() filter string (commas and parens are syntax delimiters).
+    const safeQ = q.replace(/[(),]/g, '')
+    const searchPattern = `%${safeQ}%`
 
     let query = supabase
         .from('tournaments')
         .select('*', { count: 'exact' })
         .eq('status', 'published')
         .or(
-            `name.ilike.${searchPattern},organizer_name.ilike.${searchPattern},location.ilike.${searchPattern}`,
-            { foreignTable: undefined }
+            `name.ilike.${searchPattern},organizer_name.ilike.${searchPattern},location.ilike.${searchPattern}`
         )
         .order('date', { ascending: true })
         .range(offset, offset + limit - 1)
