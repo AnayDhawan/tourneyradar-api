@@ -5,7 +5,7 @@ No authentication required. No API key needed. This API currently serves 1800+ t
 
 **Base URL:** `https://tourneyradar-api.vercel.app`
 
-![License: MIT](https://img.shields.io/badge/license-MIT-blue)
+![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue)
 ![Status](https://img.shields.io/badge/status-live-brightgreen)
 
 ---
@@ -164,6 +164,6 @@ Contributions welcome. Please open an issue before submitting a PR for significa
 
 ## License
 
-MIT — see [LICENSE](./LICENSE)
+Apache-2.0 — see [LICENSE](./LICENSE)
 
 ---
