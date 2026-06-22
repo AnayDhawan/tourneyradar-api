@@ -5,17 +5,22 @@ import { supabase } from '../lib/supabase'
 
 const tournaments = new Hono()
 
+const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
+
 const listSchema = z.object({
   country: z.string().length(2).toUpperCase().optional(),
   category: z.enum(['Classical', 'Rapid', 'Blitz']).optional(),
   upcoming: z.coerce.boolean().optional(),
   fide_rated: z.coerce.boolean().optional(),
+  date_from: z.string().regex(ISO_DATE_REGEX, 'date_from must be an ISO date (YYYY-MM-DD)').optional(),
+  date_to: z.string().regex(ISO_DATE_REGEX, 'date_to must be an ISO date (YYYY-MM-DD)').optional(),
+  organizer: z.string().min(1).optional(),
   limit: z.coerce.number().min(1).max(1000).default(50),
   page: z.coerce.number().min(1).default(1),
 })
 
 tournaments.get('/', zValidator('query', listSchema), async (c) => {
-  const { country, category, upcoming, fide_rated, limit, page } = c.req.valid('query')
+  const { country, category, upcoming, fide_rated, date_from, date_to, organizer, limit, page } = c.req.valid('query')
   const offset = (page - 1) * limit
 
   let query = supabase
@@ -29,6 +34,9 @@ tournaments.get('/', zValidator('query', listSchema), async (c) => {
   if (category) query = query.eq('category', category)
   if (fide_rated !== undefined) query = query.eq('fide_rated', fide_rated)
   if (upcoming) query = query.gte('date', new Date().toISOString().split('T')[0])
+  if (date_from) query = query.gte('date', date_from)
+  if (date_to) query = query.lte('date', date_to)
+  if (organizer) query = query.ilike('organizer_name', `%${organizer}%`)
 
   const { data, error, count } = await query
 
