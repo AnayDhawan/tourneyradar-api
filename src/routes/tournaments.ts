@@ -59,8 +59,19 @@ tournaments.get('/', zValidator('query', listSchema), async (c) => {
   })
 })
 
-tournaments.get('/:id', async (c) => {
-  const id = c.req.param('id')
+// Ids are scraper-issued slugs, currently `cr_<chess-results id>`, so they are
+// opaque strings rather than integers. Constrain the shape and length instead
+// of coercing to a number, which would reject every real id.
+const detailParamSchema = z.object({
+  id: z
+    .string()
+    .min(1)
+    .max(64)
+    .regex(/^[A-Za-z0-9_-]+$/, 'id may only contain letters, digits, hyphens and underscores'),
+})
+
+tournaments.get('/:id', zValidator('param', detailParamSchema), async (c) => {
+  const { id } = c.req.valid('param')
 
   const { data, error } = await supabase
     .from('tournaments')

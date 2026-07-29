@@ -99,11 +99,17 @@ GET /v1/countries
 
 ## Rate limiting
 
-60 requests per minute per IP.
+There is currently no rate limiting. Earlier versions shipped an in-memory
+limiter that did not actually limit anything across serverless invocations, so
+it was removed rather than left in place giving false assurance. No
+`X-RateLimit-*` headers are returned.
 
-Responses include rate limit headers:
-- `X-RateLimit-Limit`
-- `X-RateLimit-Remaining`
+Please be reasonable: responses are cached at the edge, so hammering the same
+query gains you nothing. If you need bulk access, open an issue and say what
+you are building.
+
+Rate limiting may return backed by a shared store. It will be announced in the
+[CHANGELOG](CHANGELOG.md) before any limits are enforced.
 
 ---
 
