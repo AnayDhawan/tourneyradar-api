@@ -118,26 +118,73 @@ Rate limiting may return backed by a shared store. It will be announced in the
 **JavaScript / TypeScript**
 ```js
 const res = await fetch(
-  'https://tourneyradar-api.vercel.app/v1/tournaments?country=IN&upcoming=true'
+  'https://tourneyradar-api.vercel.app/v1/tournaments?country=IN&upcoming=true&limit=5'
 )
 const { data, meta } = await res.json()
 console.log(`Found ${meta.total} tournaments`)
+console.log(data.map((tournament) => tournament.name))
+```
+
+**curl**
+```bash
+# List upcoming tournaments in India.
+curl "https://tourneyradar-api.vercel.app/v1/tournaments?country=IN&upcoming=true&limit=5"
+
+# Fetch a single tournament by id.
+curl "https://tourneyradar-api.vercel.app/v1/tournaments/cr_1371843"
 ```
 
 **Python**
 ```python
 import requests
 
-res = requests.get(
-  'https://tourneyradar-api.vercel.app/v1/tournaments',
-  params={'country': 'DE', 'upcoming': 'true', 'limit': 10}
-)
-data = res.json()
+BASE_URL = 'https://tourneyradar-api.vercel.app'
+
+
+def get_tournaments(country='IN'):
+    page = 1
+    tournaments = []
+
+    while True:
+        res = requests.get(
+            f'{BASE_URL}/v1/tournaments',
+            params={
+                'country': country,
+                'upcoming': 'true',
+                'limit': 50,
+                'page': page,
+            },
+            timeout=15,
+        )
+        res.raise_for_status()
+
+        payload = res.json()
+        tournaments.extend(payload['data'])
+
+        if not payload['meta']['hasMore']:
+            return tournaments
+
+        page += 1
+
+
+for tournament in get_tournaments('IN'):
+    print(tournament['id'], tournament['name'])
 ```
 
-**curl**
-```bash
-curl "https://tourneyradar-api.vercel.app/v1/tournaments?country=US&upcoming=true"
+**Handling missing tournaments**
+```python
+import requests
+
+res = requests.get(
+    'https://tourneyradar-api.vercel.app/v1/tournaments/not-a-real-id',
+    timeout=15,
+)
+
+if res.status_code == 404:
+    print(res.json())
+    # {'error': 'Tournament not found', 'status': 404}
+else:
+    res.raise_for_status()
 ```
 
 ---
