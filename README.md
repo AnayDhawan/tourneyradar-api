@@ -215,6 +215,14 @@ Contributions welcome. Please open an issue before submitting a PR for significa
 
 ---
 
+## Contributors
+
+Thanks to everyone who has shipped a route, expanded the docs, or filed a fix.
+
+[![Contributors](https://contrib.rocks/image?repo=AnayDhawan/tourneyradar-api)](https://github.com/AnayDhawan/tourneyradar-api/graphs/contributors)
+
+---
+
 ## License
 
 Apache-2.0 — see [LICENSE](./LICENSE)
