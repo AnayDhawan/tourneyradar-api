@@ -97,6 +97,55 @@ GET /v1/countries
 
 ---
 
+### GET /v1/search
+
+Full-text search across tournament name, organizer, and location.
+
+**Query parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `q` | string | Search term. Required, minimum length 1 |
+| `limit` | number | Results per page (1–1000, default 50) |
+| `page` | number | Page number (minimum 1, default 1) |
+
+PostgREST filter control characters (`(`, `)`, `,`) are stripped from `q` before it is matched, so they cannot break the underlying query.
+
+**Example:**
+GET /v1/search?q=open&limit=2
+
+**Response:**
+```json
+{
+  "data": [
+    {
+      "id": "cr_1350779",
+      "name": "GPOA OPEN 2026 Přebor JmŠS v rapidu HD16, HD18 a HD20",
+      "city": "Obchodní Akademie  Znojmo",
+      "country": "Czech Republic",
+      "country_code": "CZ",
+      "date": "2026-03-25",
+      "end_date": "2026-03-25",
+      "category": "Rapid",
+      "fide_rated": true,
+      "rounds": 7,
+      "format": "Swiss",
+      "lat": 48.8564399,
+      "lng": 16.0461196,
+      "source_url": "https://chess-results.com/tnr1350779.aspx?lan=1"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 2,
+    "total": 1695,
+    "hasMore": true
+  }
+}
+```
+
+---
+
 ## Rate limiting
 
 There is currently no rate limiting. Earlier versions shipped an in-memory
