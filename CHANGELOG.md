@@ -37,6 +37,10 @@ All notable changes to this project are documented here. Format based on
   the main TourneyRadar repo; a PR template. Private vulnerability reporting
   enabled on the repo
   ([#20](https://github.com/AnayDhawan/tourneyradar-api/issues/20)).
+- `GETTING_STARTED.md`: local setup, deployment (Vercel single serverless
+  function), and a working curl example for every endpoint including
+  `/v1/stats`, `/docs`, and `/openapi.json`. Linked from the README
+  ([#29](https://github.com/AnayDhawan/tourneyradar-api/issues/29)).
 - `/v1/search` route for free-text tournament search ([#7](https://github.com/AnayDhawan/tourneyradar-api/pull/7)).
 - `date_from`, `date_to`, and `organizer` filters on the tournaments endpoint
   ([#9](https://github.com/AnayDhawan/tourneyradar-api/pull/9)).
