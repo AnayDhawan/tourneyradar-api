@@ -1,0 +1,52 @@
+name: Bug report
+description: Something about the API is broken or returning the wrong data
+title: "bug: "
+labels: [bug]
+body:
+  - type: input
+    id: endpoint
+    attributes:
+      label: Endpoint
+      description: Which route, including the path (e.g. /v1/tournaments/:id)
+      placeholder: GET /v1/tournaments
+    validations:
+      required: true
+
+  - type: textarea
+    id: request
+    attributes:
+      label: Exact request
+      description: The full URL you called, including query params, or the exact curl command
+      placeholder: |
+        curl "https://tourneyradar-api.vercel.app/v1/tournaments?country=IN&limit=5"
+      render: bash
+    validations:
+      required: true
+
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed response
+      description: Status code and response body you actually got
+      placeholder: |
+        HTTP 500
+        { "error": "Failed to fetch tournaments", "status": 500 }
+      render: json
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected response
+      description: What you expected instead, and why
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Anything else worth knowing (client language, timing, whether it's reproducible)
+    validations:
+      required: false

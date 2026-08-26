@@ -30,6 +30,13 @@ All notable changes to this project are documented here. Format based on
   limiter is a no-op, matching what the README has said since the broken
   in-memory limiter was removed
   ([#19](https://github.com/AnayDhawan/tourneyradar-api/issues/19)).
+- `SECURITY.md`, calling out the Supabase service role key as the
+  highest-severity report possible against this repo; GitHub issue forms for
+  bug reports (endpoint, exact request, observed vs. expected response) and
+  feature requests; an issue template `config.yml` redirecting site issues to
+  the main TourneyRadar repo; a PR template. Private vulnerability reporting
+  enabled on the repo
+  ([#20](https://github.com/AnayDhawan/tourneyradar-api/issues/20)).
 - `/v1/search` route for free-text tournament search ([#7](https://github.com/AnayDhawan/tourneyradar-api/pull/7)).
 - `date_from`, `date_to`, and `organizer` filters on the tournaments endpoint
   ([#9](https://github.com/AnayDhawan/tourneyradar-api/pull/9)).

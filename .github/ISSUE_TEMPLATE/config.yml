@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: TourneyRadar site issue
+    url: https://github.com/AnayDhawan/tourneyradar/issues/new/choose
+    about: For the map, the website, or a specific tournament listing (not the API itself), file it in the main TourneyRadar repo instead.
+  - name: Security vulnerability
+    url: https://github.com/AnayDhawan/tourneyradar-api/security/advisories/new
+    about: Do not open a public issue for a security report. See SECURITY.md.
