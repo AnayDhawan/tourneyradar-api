@@ -5,6 +5,8 @@ No authentication required. No API key needed. This API currently serves 1800+ t
 
 **Base URL:** `https://tourneyradar-api.vercel.app`
 
+**[Interactive docs](https://tourneyradar-api.vercel.app/docs)** — browse every endpoint and try requests against live data. Machine-readable spec at [`/openapi.json`](https://tourneyradar-api.vercel.app/openapi.json).
+
 ![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue)
 ![Status](https://img.shields.io/badge/status-live-brightgreen)
 

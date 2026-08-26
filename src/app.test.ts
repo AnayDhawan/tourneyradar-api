@@ -39,3 +39,24 @@ describe('GET /openapi.json', () => {
     )
   })
 })
+
+describe('GET /docs', () => {
+  it('renders the API reference pointed at /openapi.json', async () => {
+    const res = await app.request('/docs')
+    expect(res.status).toBe(200)
+    expect(res.headers.get('Content-Type')).toContain('text/html')
+
+    const body = await res.text()
+    expect(body).toContain('/openapi.json')
+  })
+})
+
+describe('app shell', () => {
+  it('lists the docs and openapi urls', async () => {
+    const res = await app.request('/')
+    const body = await res.json()
+
+    expect(body.docs).toBe('/docs')
+    expect(body.openapi).toBe('/openapi.json')
+  })
+})

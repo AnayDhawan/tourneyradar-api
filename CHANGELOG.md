@@ -12,6 +12,9 @@ All notable changes to this project are documented here. Format based on
   both response shapes, and every status code they can return. A test
   validates the served document with `@apidevtools/swagger-parser`
   ([#16](https://github.com/AnayDhawan/tourneyradar-api/issues/16)).
+- `/docs`: interactive API reference (Scalar) rendered from `/openapi.json`,
+  with "try it" against live data. Linked from the index route and the README
+  ([#17](https://github.com/AnayDhawan/tourneyradar-api/issues/17)).
 - `/v1/search` route for free-text tournament search ([#7](https://github.com/AnayDhawan/tourneyradar-api/pull/7)).
 - `date_from`, `date_to`, and `organizer` filters on the tournaments endpoint
   ([#9](https://github.com/AnayDhawan/tourneyradar-api/pull/9)).
