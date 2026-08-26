@@ -5,6 +5,6 @@
     "rootDir": ".",
     "types": ["node", "vitest/globals"]
   },
-  "include": ["src/**/*", "vitest.config.ts"],
+  "include": ["src/**/*", "api/**/*", "vitest.config.ts"],
   "exclude": ["node_modules", "dist"]
 }

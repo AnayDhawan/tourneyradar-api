@@ -1,0 +1,1 @@
+This directory intentionally left mostly empty. tourneyradar-api has no static frontend; every route is served from api/index.ts. Vercel's build step still expects an output directory to exist, so this placeholder satisfies that.

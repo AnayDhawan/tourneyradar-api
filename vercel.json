@@ -1,13 +1,6 @@
 {
   "framework": null,
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "functions": {
-    "dist/index.js": {
-      "includeFiles": "dist/**"
-    }
-  },
-  "routes": [
-    { "src": "/(.*)", "dest": "dist/index.js" }
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/api" }
   ]
 }

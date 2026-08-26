@@ -6,6 +6,20 @@ All notable changes to this project are documented here. Format based on
 
 ## [Unreleased]
 
+### Fixed
+- Vercel deployment was broken by the OpenAPI migration below: Vercel's
+  dashboard Framework Preset is set to `hono`, which auto-detects an
+  entrypoint by scanning for a literal `import { Hono } from 'hono'` in a
+  root-level `app.js`/`index.js`. Moving to `OpenAPIHono` removed the only
+  such import, and the repo's old `vercel.json` (`functions`/`routes`
+  pointing at `dist/index.js`) turned out to have been silently unused this
+  whole time, superseded by that same zero-config detection, so it wasn't a
+  working fallback either. Replaced with the standard `api/index.ts` +
+  [`hono/vercel`](https://hono.dev/docs/getting-started/vercel) `handle()`
+  pattern, `framework: null` to opt out of the Hono auto-detection for good,
+  and a `rewrites` rule mapping every path to the function. Verified against
+  a real local `vercel build`, not just `npm test`.
+
 ### Added
 - `/openapi.json`: OpenAPI 3.1 document generated from the same zod schemas the
   routes validate against, via `@hono/zod-openapi`. Covers all four routes,

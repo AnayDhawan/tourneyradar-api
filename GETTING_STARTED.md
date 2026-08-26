@@ -44,19 +44,32 @@ npm run build    # tsc, outputs to dist/
 
 ## Deployment
 
-This deploys as a single Vercel serverless function. `vercel.json` routes
-every request to `dist/index.js`:
+This deploys as a single Vercel Node.js function at `api/index.ts`, using
+[`hono/vercel`](https://hono.dev/docs/getting-started/vercel)'s `handle()` to
+adapt the app to Vercel's function signature. `vercel.json` rewrites every
+path to it:
 
 ```json
 {
-  "routes": [{ "src": "/(.*)", "dest": "dist/index.js" }]
+  "framework": null,
+  "rewrites": [{ "source": "/(.*)", "destination": "/api" }]
 }
 ```
 
-The build command is `npm run build` (`tsc`, no bundler), output directory
-`dist`. Set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` as Vercel
-environment variables; add the two `UPSTASH_REDIS_REST_*` variables as well if
-you want rate limiting enforced in production.
+`framework: null` matters: Vercel has native zero-config Hono detection that
+scans for a literal `import { Hono } from 'hono'` in a root-level
+`app.js`/`index.js`, which this repo doesn't have since the app is built on
+`OpenAPIHono` (from `@hono/zod-openapi`) instead. Without the override,
+Vercel's own Hono build silently takes over and the custom function setup
+above never runs.
+
+There's no static frontend, so `public/` exists only as an empty placeholder;
+Vercel's build step expects an output directory to exist even when nothing
+is actually served from it (everything is rewritten to the function).
+
+Set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` as Vercel environment
+variables; add the two `UPSTASH_REDIS_REST_*` variables as well if you want
+rate limiting enforced in production.
 
 If you're self-hosting elsewhere, `npm run build && npm start` runs the same
 compiled output behind `@hono/node-server` instead.
