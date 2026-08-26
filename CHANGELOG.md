@@ -41,6 +41,12 @@ All notable changes to this project are documented here. Format based on
   function), and a working curl example for every endpoint including
   `/v1/stats`, `/docs`, and `/openapi.json`. Linked from the README
   ([#29](https://github.com/AnayDhawan/tourneyradar-api/issues/29)).
+- README "Built with this API" section seeded with the main TourneyRadar
+  site, plus submission instructions and an explicit entry format. GitHub
+  Discussions enabled (with the default Q&A and Show and tell categories)
+  and repository topics expanded: `rest-api`, `openapi`, `typescript`,
+  `vercel`, `public-api`, `chess-tournaments`, `free-api`
+  ([#25](https://github.com/AnayDhawan/tourneyradar-api/issues/25)).
 - `/v1/search` route for free-text tournament search ([#7](https://github.com/AnayDhawan/tourneyradar-api/pull/7)).
 - `date_from`, `date_to`, and `organizer` filters on the tournaments endpoint
   ([#9](https://github.com/AnayDhawan/tourneyradar-api/pull/9)).

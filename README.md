@@ -284,7 +284,15 @@ and geocoded via the Google Maps API. Coverage grows with every weekly scrape ru
 
 ## Built with this API
 
-> Using this API in your project? Open a PR to add it here.
+Using this API in your project? Open a PR adding a line to the table below,
+or post in [Show and tell](https://github.com/AnayDhawan/tourneyradar-api/discussions/categories/show-and-tell)
+if you'd rather not touch the README directly.
+
+**Format:** `| [Project name](https://link) | One-line description | @your-github-handle |`
+
+| Project | Description | Author |
+|---|---|---|
+| [TourneyRadar](https://github.com/AnayDhawan/tourneyradar) | Interactive world map of over-the-board chess tournaments, powered by this API | [@AnayDhawan](https://github.com/AnayDhawan) |
 
 ---
 
