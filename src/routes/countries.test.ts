@@ -35,9 +35,19 @@ describe('GET /v1/countries', () => {
     ])
   })
 
-  it('sets a long cache header', async () => {
+  it('sets the shared cache policy with stale-while-revalidate', async () => {
     const res = await app.request('/v1/countries')
     expect(res.headers.get('Cache-Control')).toContain('s-maxage=3600')
+    expect(res.headers.get('Cache-Control')).toContain('stale-while-revalidate')
+  })
+
+  it('returns an ETag and 304s a matching If-None-Match', async () => {
+    const first = await app.request('/v1/countries')
+    const etag = first.headers.get('ETag')
+    expect(etag).toBeTruthy()
+
+    const second = await app.request('/v1/countries', { headers: { 'If-None-Match': etag! } })
+    expect(second.status).toBe(304)
   })
 
   it('returns 500 when the query fails', async () => {

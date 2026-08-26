@@ -1,6 +1,7 @@
 import { OpenAPIHono, createRoute } from '@hono/zod-openapi'
 import { supabase } from '../lib/supabase'
 import { arrayResponseSchema, countrySchema, errorSchema } from '../schemas'
+import { CACHE_CONTROL, etagFor } from '../lib/cache'
 
 const countries = new OpenAPIHono()
 
@@ -23,6 +24,9 @@ const listRoute = createRoute({
       description: 'Query failed',
       content: { 'application/json': { schema: errorSchema } },
     },
+    304: {
+      description: 'Not modified, matches the If-None-Match ETag',
+    },
   },
 })
 
@@ -41,9 +45,15 @@ countries.openapi(listRoute, async (c) => {
     new Map(data.map(r => [r.country_code, r])).values()
   ).sort((a, b) => (a.country_code ?? '').localeCompare(b.country_code ?? ''))
 
-  return c.json({ data: unique }, 200, {
-    'Cache-Control': 'public, s-maxage=3600',
-  })
+  const body = { data: unique }
+  const etag = etagFor(body)
+  const headers = { 'Cache-Control': CACHE_CONTROL, ETag: etag }
+
+  if (c.req.header('If-None-Match') === etag) {
+    return c.body(null, 304, headers)
+  }
+
+  return c.json(body, 200, headers)
 })
 
 export default countries

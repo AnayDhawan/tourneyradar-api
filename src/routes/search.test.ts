@@ -64,4 +64,19 @@ describe('GET /v1/search', () => {
     const res = await app.request('/v1/search?q=open')
     expect(res.status).toBe(500)
   })
+
+  it('sets the shared cache policy with stale-while-revalidate', async () => {
+    const res = await app.request('/v1/search?q=open')
+    expect(res.headers.get('Cache-Control')).toContain('s-maxage=3600')
+    expect(res.headers.get('Cache-Control')).toContain('stale-while-revalidate')
+  })
+
+  it('returns an ETag and 304s a matching If-None-Match', async () => {
+    const first = await app.request('/v1/search?q=open')
+    const etag = first.headers.get('ETag')
+    expect(etag).toBeTruthy()
+
+    const second = await app.request('/v1/search?q=open', { headers: { 'If-None-Match': etag! } })
+    expect(second.status).toBe(304)
+  })
 })

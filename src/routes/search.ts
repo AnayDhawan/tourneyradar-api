@@ -1,6 +1,7 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi'
 import { supabase } from '../lib/supabase'
 import { errorSchema, paginatedResponseSchema, tournamentSchema } from '../schemas'
+import { CACHE_CONTROL, etagFor } from '../lib/cache'
 
 const search = new OpenAPIHono()
 
@@ -29,6 +30,9 @@ const searchRoute = createRoute({
     500: {
       description: 'Query failed',
       content: { 'application/json': { schema: errorSchema } },
+    },
+    304: {
+      description: 'Not modified, matches the If-None-Match ETag',
     },
   },
 })
@@ -60,19 +64,23 @@ search.openapi(searchRoute, async (c) => {
 
   const total = count ?? 0
 
-  return c.json(
-    {
-      data,
-      meta: {
-        page,
-        limit,
-        total,
-        hasMore: offset + limit < total,
-      },
+  const body = {
+    data,
+    meta: {
+      page,
+      limit,
+      total,
+      hasMore: offset + limit < total,
     },
-    200,
-    { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120' }
-  )
+  }
+  const etag = etagFor(body)
+  const headers = { 'Cache-Control': CACHE_CONTROL, ETag: etag }
+
+  if (c.req.header('If-None-Match') === etag) {
+    return c.body(null, 304, headers)
+  }
+
+  return c.json(body, 200, headers)
 })
 
 export default search

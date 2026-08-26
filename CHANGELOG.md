@@ -15,6 +15,8 @@ All notable changes to this project are documented here. Format based on
 - `/docs`: interactive API reference (Scalar) rendered from `/openapi.json`,
   with "try it" against live data. Linked from the index route and the README
   ([#17](https://github.com/AnayDhawan/tourneyradar-api/issues/17)).
+- `ETag` on all four routes with 304 support for a matching `If-None-Match`
+  ([#22](https://github.com/AnayDhawan/tourneyradar-api/issues/22)).
 - `/v1/search` route for free-text tournament search ([#7](https://github.com/AnayDhawan/tourneyradar-api/pull/7)).
 - `date_from`, `date_to`, and `organizer` filters on the tournaments endpoint
   ([#9](https://github.com/AnayDhawan/tourneyradar-api/pull/9)).
@@ -46,6 +48,11 @@ All notable changes to this project are documented here. Format based on
   ([#14](https://github.com/AnayDhawan/tourneyradar-api/issues/14)).
 
 ### Changed
+- Cache policy unified across all four routes to `s-maxage=3600,
+  stale-while-revalidate=86400`, derived from the real weekly scrape cadence
+  instead of four different per-route guesses. Extracted into
+  `src/lib/cache.ts` so the routes cannot drift apart again
+  ([#22](https://github.com/AnayDhawan/tourneyradar-api/issues/22)).
 - Relicensed from MIT to Apache-2.0.
 - README expanded with tournament/country counts and fuller endpoint documentation,
   plus expanded quick-start API examples.

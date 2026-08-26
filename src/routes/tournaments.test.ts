@@ -26,9 +26,20 @@ describe('GET /v1/tournaments', () => {
     expect(body.meta).toEqual({ page: 1, limit: 50, total: 1, hasMore: false })
   })
 
-  it('sets a cache header', async () => {
+  it('sets the shared cache policy with stale-while-revalidate', async () => {
     const res = await app.request('/v1/tournaments')
-    expect(res.headers.get('Cache-Control')).toContain('s-maxage=300')
+    expect(res.headers.get('Cache-Control')).toContain('s-maxage=3600')
+    expect(res.headers.get('Cache-Control')).toContain('stale-while-revalidate')
+  })
+
+  it('returns an ETag and 304s a matching If-None-Match', async () => {
+    const first = await app.request('/v1/tournaments')
+    const etag = first.headers.get('ETag')
+    expect(etag).toBeTruthy()
+
+    const second = await app.request('/v1/tournaments', { headers: { 'If-None-Match': etag! } })
+    expect(second.status).toBe(304)
+    expect(await second.text()).toBe('')
   })
 
   it('rejects a country code that is not two characters', async () => {
@@ -111,5 +122,17 @@ describe('GET /v1/tournaments/:id', () => {
     mockResult = { data: null, error: { message: 'not found' } }
     const res = await app.request('/v1/tournaments/cr_000000')
     expect(res.status).toBe(404)
+  })
+
+  it('sets the shared cache policy and 304s a matching If-None-Match', async () => {
+    mockResult = { data: sampleTournament, error: null }
+    const first = await app.request('/v1/tournaments/cr_123456')
+    expect(first.headers.get('Cache-Control')).toContain('s-maxage=3600')
+
+    const etag = first.headers.get('ETag')
+    expect(etag).toBeTruthy()
+
+    const second = await app.request('/v1/tournaments/cr_123456', { headers: { 'If-None-Match': etag! } })
+    expect(second.status).toBe(304)
   })
 })
