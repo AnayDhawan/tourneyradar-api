@@ -176,17 +176,24 @@ GET /v1/stats
 
 ## Rate limiting
 
-There is currently no rate limiting. Earlier versions shipped an in-memory
-limiter that did not actually limit anything across serverless invocations, so
-it was removed rather than left in place giving false assurance. No
-`X-RateLimit-*` headers are returned.
+100 requests per minute per IP, backed by [Upstash Redis](https://upstash.com)
+rather than process memory, so the limit actually holds across serverless
+invocations. This replaces an earlier in-memory limiter that didn't
+([#19](https://github.com/AnayDhawan/tourneyradar-api/issues/19)).
 
-Please be reasonable: responses are cached at the edge, so hammering the same
-query gains you nothing. If you need bulk access, open an issue and say what
-you are building.
+Every response carries `X-RateLimit-Limit` and `X-RateLimit-Remaining`. Once
+exceeded, requests get `429` with a `Retry-After` header. If the Upstash store
+is unreachable, the API fails open: requests pass through unlimited rather
+than the whole API going down.
 
-Rate limiting may return backed by a shared store. It will be announced in the
-[CHANGELOG](CHANGELOG.md) before any limits are enforced.
+The limiter only activates once `UPSTASH_REDIS_REST_URL` and
+`UPSTASH_REDIS_REST_TOKEN` are configured on the deployment (see
+`.env.example`); without them it's a no-op, so self-hosted instances aren't
+forced onto Upstash.
+
+Please be reasonable regardless: responses are cached at the edge, so
+hammering the same query gains you nothing. If you need bulk access, open an
+issue and say what you are building.
 
 ---
 

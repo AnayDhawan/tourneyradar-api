@@ -1,6 +1,7 @@
 import { OpenAPIHono } from '@hono/zod-openapi'
 import { Scalar } from '@scalar/hono-api-reference'
 import { corsMiddleware } from './middleware/cors'
+import { rateLimitMiddleware } from './middleware/rate-limit'
 import tournaments from './routes/tournaments'
 import countries from './routes/countries'
 import search from './routes/search'
@@ -11,6 +12,7 @@ import stats from './routes/stats'
 const app = new OpenAPIHono()
 
 app.use('*', corsMiddleware)
+app.use('*', rateLimitMiddleware)
 
 app.get('/', (c) => c.json({
   name: 'TourneyRadar API',

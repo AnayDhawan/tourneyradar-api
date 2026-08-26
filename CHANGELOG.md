@@ -22,6 +22,14 @@ All notable changes to this project are documented here. Format based on
   Aggregated in the database (`count: 'exact', head: true` per figure), not
   by fetching every row
   ([#23](https://github.com/AnayDhawan/tourneyradar-api/issues/23)).
+- Rate limiting is back, this time backed by Upstash Redis instead of process
+  memory: 100 requests/minute/IP, real `X-RateLimit-Limit` and
+  `X-RateLimit-Remaining` headers, `429` with `Retry-After` once exceeded.
+  Fails open (unlimited) if the store is unreachable. Opt-in via
+  `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN`; without them the
+  limiter is a no-op, matching what the README has said since the broken
+  in-memory limiter was removed
+  ([#19](https://github.com/AnayDhawan/tourneyradar-api/issues/19)).
 - `/v1/search` route for free-text tournament search ([#7](https://github.com/AnayDhawan/tourneyradar-api/pull/7)).
 - `date_from`, `date_to`, and `organizer` filters on the tournaments endpoint
   ([#9](https://github.com/AnayDhawan/tourneyradar-api/pull/9)).
