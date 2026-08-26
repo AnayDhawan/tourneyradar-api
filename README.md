@@ -148,6 +148,32 @@ GET /v1/search?q=open&limit=2
 
 ---
 
+### GET /v1/stats
+
+Aggregate figures across all published tournaments: how much data sits behind the API without paging through it.
+
+**Example:**
+GET /v1/stats
+
+**Response:**
+```json
+{
+  "data": {
+    "total": 12989,
+    "upcoming": 1620,
+    "countries": 46,
+    "byCategory": {
+      "Classical": 230,
+      "Rapid": 11884,
+      "Blitz": 875
+    },
+    "lastScrapedAt": "2026-08-23T03:31:29.081+00:00"
+  }
+}
+```
+
+---
+
 ## Rate limiting
 
 There is currently no rate limiting. Earlier versions shipped an in-memory

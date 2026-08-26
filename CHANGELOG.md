@@ -17,6 +17,11 @@ All notable changes to this project are documented here. Format based on
   ([#17](https://github.com/AnayDhawan/tourneyradar-api/issues/17)).
 - `ETag` on all four routes with 304 support for a matching `If-None-Match`
   ([#22](https://github.com/AnayDhawan/tourneyradar-api/issues/22)).
+- `GET /v1/stats`: total published tournaments, upcoming count, distinct
+  country count, count by category, and the most recent scrape timestamp.
+  Aggregated in the database (`count: 'exact', head: true` per figure), not
+  by fetching every row
+  ([#23](https://github.com/AnayDhawan/tourneyradar-api/issues/23)).
 - `/v1/search` route for free-text tournament search ([#7](https://github.com/AnayDhawan/tourneyradar-api/pull/7)).
 - `date_from`, `date_to`, and `organizer` filters on the tournaments endpoint
   ([#9](https://github.com/AnayDhawan/tourneyradar-api/pull/9)).

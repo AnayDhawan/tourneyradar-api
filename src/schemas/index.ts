@@ -44,6 +44,22 @@ export const tournamentSchema = z
   })
   .openapi('Tournament')
 
+export const statsSchema = z
+  .object({
+    total: z.number().openapi({ example: 1842, description: 'Total published tournaments' }),
+    upcoming: z.number().openapi({ example: 612, description: 'Published tournaments with a date today or later' }),
+    countries: z.number().openapi({ example: 94, description: 'Distinct countries with a published tournament' }),
+    byCategory: z
+      .object({
+        Classical: z.number().openapi({ example: 1120 }),
+        Rapid: z.number().openapi({ example: 480 }),
+        Blitz: z.number().openapi({ example: 242 }),
+      })
+      .openapi({ description: 'Published tournament count per category' }),
+    lastScrapedAt: z.string().nullable().openapi({ example: '2026-08-24T03:12:00Z', description: 'Timestamp of the most recent scrape run, or null if none recorded' }),
+  })
+  .openapi('Stats')
+
 export const countrySchema = z
   .object({
     country_code: z.string().openapi({ example: 'IN' }),

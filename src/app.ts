@@ -4,6 +4,7 @@ import { corsMiddleware } from './middleware/cors'
 import tournaments from './routes/tournaments'
 import countries from './routes/countries'
 import search from './routes/search'
+import stats from './routes/stats'
 
 // The app is built here and served in index.ts, so tests can import it and
 // drive it through app.request() without binding a port.
@@ -22,12 +23,14 @@ app.get('/', (c) => c.json({
     'GET /v1/tournaments/:id',
     'GET /v1/countries',
     'GET /v1/search?q=',
+    'GET /v1/stats',
   ]
 }))
 
 app.route('/v1/tournaments', tournaments)
 app.route('/v1/countries', countries)
 app.route('/v1/search', search)
+app.route('/v1/stats', stats)
 
 // Generated from the zod schemas each route already validates against, so the
 // document cannot drift from what actually validates the way the hand-written
