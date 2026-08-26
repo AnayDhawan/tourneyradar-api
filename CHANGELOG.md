@@ -19,6 +19,17 @@ All notable changes to this project are documented here. Format based on
   pattern, `framework: null` to opt out of the Hono auto-detection for good,
   and a `rewrites` rule mapping every path to the function. Verified against
   a real local `vercel build`, not just `npm test`.
+- That `api/index.ts` fix deployed but still 500'd on every route (checked
+  via `vercel logs` against the real production runtime, not just local
+  tooling): `@scalar/hono-api-reference` is ESM-only, and a static top-level
+  `import` of it in `src/app.ts` crashed the whole CommonJS module at load
+  time on Vercel's runtime, taking every route down with it, not just
+  `/docs`. Now imported lazily with a dynamic `import()` inside the `/docs`
+  handler, which works from CommonJS regardless of runtime `require(esm)`
+  support. Also switched `api/index.ts` from `export default` to a named
+  `export const fetch`: a default export gets Vercel's legacy `(req, res)`
+  handler treatment, which doesn't hand Hono a real Fetch `Request` (no
+  `.headers.get()`), breaking the CORS middleware on every request.
 
 ### Added
 - `/openapi.json`: OpenAPI 3.1 document generated from the same zod schemas the

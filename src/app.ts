@@ -1,5 +1,4 @@
 import { OpenAPIHono } from '@hono/zod-openapi'
-import { Scalar } from '@scalar/hono-api-reference'
 import { corsMiddleware } from './middleware/cors'
 import { rateLimitMiddleware } from './middleware/rate-limit'
 import tournaments from './routes/tournaments'
@@ -48,7 +47,15 @@ app.doc31('/openapi.json', {
   servers: [{ url: 'https://tourneyradar-api.vercel.app', description: 'Production' }],
 })
 
-app.get('/docs', Scalar({ url: '/openapi.json', pageTitle: 'TourneyRadar API' }))
+// @scalar/hono-api-reference is ESM-only. Vercel's Node.js runtime can't
+// require() an ESM package (ERR_REQUIRE_ESM), and since this CommonJS build
+// only has require() available, a static top-level import crashed the whole
+// module, not just this route, taking every endpoint down with it. A dynamic
+// import() works from CommonJS regardless of runtime require(esm) support.
+app.get('/docs', async (c, next) => {
+  const { Scalar } = await import('@scalar/hono-api-reference')
+  return Scalar({ url: '/openapi.json', pageTitle: 'TourneyRadar API' })(c, next)
+})
 
 app.notFound((c) => c.json({ error: 'Not found', status: 404 }, 404))
 app.onError((err, c) => {
