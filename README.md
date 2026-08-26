@@ -5,7 +5,7 @@ No authentication required. No API key needed. This API currently serves 1800+ t
 
 **Base URL:** `https://tourneyradar-api.vercel.app`
 
-**[Interactive docs](https://tourneyradar-api.vercel.app/docs)** — browse every endpoint and try requests against live data. Machine-readable spec at [`/openapi.json`](https://tourneyradar-api.vercel.app/openapi.json).
+**[Interactive docs](https://tourneyradar-api.vercel.app/docs)**: browse every endpoint and try requests against live data. Machine-readable spec at [`/openapi.json`](https://tourneyradar-api.vercel.app/openapi.json).
 
 New here? **[Getting Started](GETTING_STARTED.md)** covers local setup, deployment, and a first call to every endpoint.
 
@@ -298,7 +298,7 @@ if you'd rather not touch the README directly.
 
 ## Related
 
-- [TourneyRadar](https://github.com/AnayDhawan/tourneyradar) — the interactive 
+- [TourneyRadar](https://github.com/AnayDhawan/tourneyradar): the interactive
   world map powered by this API
 
 ---
@@ -319,6 +319,6 @@ Thanks to everyone who has shipped a route, expanded the docs, or filed a fix.
 
 ## License
 
-Apache-2.0 — see [LICENSE](./LICENSE)
+Apache-2.0. See [LICENSE](./LICENSE)
 
 ---

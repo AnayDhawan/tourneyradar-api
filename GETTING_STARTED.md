@@ -35,7 +35,7 @@ setup needed.
 Other useful commands:
 
 ```bash
-npm test        # vitest, runs against a Supabase mock — no real database needed
+npm test        # vitest, runs against a Supabase mock, no real database needed
 npm run typecheck
 npm run build    # tsc, outputs to dist/
 ```
@@ -121,9 +121,9 @@ current limits.
 
 ### Explore interactively
 
-- **[`/docs`](https://tourneyradar-api.vercel.app/docs)** — try every endpoint
+- **[`/docs`](https://tourneyradar-api.vercel.app/docs)**: try every endpoint
   in the browser against live data.
-- **[`/openapi.json`](https://tourneyradar-api.vercel.app/openapi.json)** —
+- **[`/openapi.json`](https://tourneyradar-api.vercel.app/openapi.json)**:
   the machine-readable spec, if you're generating a client.
 
 ---
