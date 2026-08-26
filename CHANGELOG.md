@@ -7,6 +7,11 @@ All notable changes to this project are documented here. Format based on
 ## [Unreleased]
 
 ### Added
+- `/openapi.json`: OpenAPI 3.1 document generated from the same zod schemas the
+  routes validate against, via `@hono/zod-openapi`. Covers all four routes,
+  both response shapes, and every status code they can return. A test
+  validates the served document with `@apidevtools/swagger-parser`
+  ([#16](https://github.com/AnayDhawan/tourneyradar-api/issues/16)).
 - `/v1/search` route for free-text tournament search ([#7](https://github.com/AnayDhawan/tourneyradar-api/pull/7)).
 - `date_from`, `date_to`, and `organizer` filters on the tournaments endpoint
   ([#9](https://github.com/AnayDhawan/tourneyradar-api/pull/9)).

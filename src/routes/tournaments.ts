@@ -1,25 +1,47 @@
-import { Hono } from 'hono'
-import { zValidator } from '@hono/zod-validator'
-import { z } from 'zod'
+import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi'
 import { supabase } from '../lib/supabase'
+import { errorSchema, paginatedResponseSchema, singleResponseSchema, tournamentSchema } from '../schemas'
 
-const tournaments = new Hono()
+const tournaments = new OpenAPIHono()
 
 const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
 
-const listSchema = z.object({
-  country: z.string().length(2).toUpperCase().optional(),
-  category: z.enum(['Classical', 'Rapid', 'Blitz']).optional(),
-  upcoming: z.coerce.boolean().optional(),
-  fide_rated: z.coerce.boolean().optional(),
-  date_from: z.string().regex(ISO_DATE_REGEX, 'date_from must be an ISO date (YYYY-MM-DD)').optional(),
-  date_to: z.string().regex(ISO_DATE_REGEX, 'date_to must be an ISO date (YYYY-MM-DD)').optional(),
-  organizer: z.string().min(1).optional(),
-  limit: z.coerce.number().min(1).max(1000).default(50),
-  page: z.coerce.number().min(1).default(1),
+const listQuerySchema = z.object({
+  country: z.string().length(2).toUpperCase().optional().openapi({ example: 'IN', description: '2-letter ISO country code' }),
+  category: z.enum(['Classical', 'Rapid', 'Blitz']).optional().openapi({ example: 'Classical' }),
+  upcoming: z.coerce.boolean().optional().openapi({ example: true }),
+  fide_rated: z.coerce.boolean().optional().openapi({ example: true }),
+  date_from: z.string().regex(ISO_DATE_REGEX, 'date_from must be an ISO date (YYYY-MM-DD)').optional().openapi({ example: '2026-01-01' }),
+  date_to: z.string().regex(ISO_DATE_REGEX, 'date_to must be an ISO date (YYYY-MM-DD)').optional().openapi({ example: '2026-12-31' }),
+  organizer: z.string().min(1).optional().openapi({ example: 'Chess Association' }),
+  limit: z.coerce.number().min(1).max(1000).default(50).openapi({ example: 50 }),
+  page: z.coerce.number().min(1).default(1).openapi({ example: 1 }),
 })
 
-tournaments.get('/', zValidator('query', listSchema), async (c) => {
+const listRoute = createRoute({
+  method: 'get',
+  path: '/',
+  tags: ['Tournaments'],
+  operationId: 'listTournaments',
+  summary: 'List tournaments',
+  request: { query: listQuerySchema },
+  responses: {
+    200: {
+      description: 'A page of published tournaments',
+      content: { 'application/json': { schema: paginatedResponseSchema(tournamentSchema) } },
+    },
+    400: {
+      description: 'Invalid query parameters',
+      content: { 'application/json': { schema: errorSchema } },
+    },
+    500: {
+      description: 'Query failed',
+      content: { 'application/json': { schema: errorSchema } },
+    },
+  },
+})
+
+tournaments.openapi(listRoute, async (c) => {
   const { country, category, upcoming, fide_rated, date_from, date_to, organizer, limit, page } = c.req.valid('query')
   const offset = (page - 1) * limit
 
@@ -46,17 +68,19 @@ tournaments.get('/', zValidator('query', listSchema), async (c) => {
 
   const total = count ?? 0
 
-  return c.json({
-    data,
-    meta: {
-      page,
-      limit,
-      total,
-      hasMore: offset + limit < total,
-    }
-  }, 200, {
-    'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
-  })
+  return c.json(
+    {
+      data,
+      meta: {
+        page,
+        limit,
+        total,
+        hasMore: offset + limit < total,
+      },
+    },
+    200,
+    { 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600' }
+  )
 })
 
 // Ids are scraper-issued slugs, currently `cr_<chess-results id>`, so they are
@@ -67,10 +91,34 @@ const detailParamSchema = z.object({
     .string()
     .min(1)
     .max(64)
-    .regex(/^[A-Za-z0-9_-]+$/, 'id may only contain letters, digits, hyphens and underscores'),
+    .regex(/^[A-Za-z0-9_-]+$/, 'id may only contain letters, digits, hyphens and underscores')
+    .openapi({ param: { name: 'id', in: 'path' }, example: 'cr_1371843' }),
 })
 
-tournaments.get('/:id', zValidator('param', detailParamSchema), async (c) => {
+const detailRoute = createRoute({
+  method: 'get',
+  path: '/{id}',
+  tags: ['Tournaments'],
+  operationId: 'getTournament',
+  summary: 'Get a single tournament by id',
+  request: { params: detailParamSchema },
+  responses: {
+    200: {
+      description: 'The tournament',
+      content: { 'application/json': { schema: singleResponseSchema(tournamentSchema) } },
+    },
+    400: {
+      description: 'Invalid id',
+      content: { 'application/json': { schema: errorSchema } },
+    },
+    404: {
+      description: 'Tournament not found',
+      content: { 'application/json': { schema: errorSchema } },
+    },
+  },
+})
+
+tournaments.openapi(detailRoute, async (c) => {
   const { id } = c.req.valid('param')
 
   const { data, error } = await supabase
@@ -84,9 +132,7 @@ tournaments.get('/:id', zValidator('param', detailParamSchema), async (c) => {
     return c.json({ error: 'Tournament not found', status: 404 }, 404)
   }
 
-  return c.json({ data }, 200, {
-    'Cache-Control': 'public, s-maxage=300',
-  })
+  return c.json({ data }, 200, { 'Cache-Control': 'public, s-maxage=300' })
 })
 
 export default tournaments

@@ -1,0 +1,11 @@
+extends:
+  - recommended
+
+rules:
+  # This API is deliberately keyless (see README "No authentication
+  # required"). There is no security scheme to declare.
+  security-defined: off
+  # /v1/countries takes no query parameters, so there is no request shape
+  # that can 400. A fabricated 4xx response would document a case that
+  # cannot occur.
+  operation-4xx-response: off

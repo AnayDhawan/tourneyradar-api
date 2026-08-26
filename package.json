@@ -25,12 +25,16 @@
   "homepage": "https://github.com/AnayDhawan/tourneyradar-api#readme",
   "dependencies": {
     "@hono/node-server": "^2.0.1",
-    "@hono/zod-validator": "^0.7.6",
+    "@hono/zod-openapi": "^1.6.1",
+    "@scalar/hono-api-reference": "^0.11.16",
     "@supabase/supabase-js": "^2.105.1",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.38.2",
     "hono": "^4.12.16",
     "zod": "^4.4.1"
   },
   "devDependencies": {
+    "@apidevtools/swagger-parser": "^12.1.0",
     "@types/node": "^25.6.0",
     "tsx": "^4.21.0",
     "typescript": "^6.0.3",
