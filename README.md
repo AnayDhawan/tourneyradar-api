@@ -1,7 +1,7 @@
 # TourneyRadar API
 
 A free, open-source REST API for over-the-board chess tournament data. 
-No authentication required. No API key needed. This API currently serves 1800+ tournaments in 90+ countries.
+No authentication required. No API key needed. This API currently serves 14,000+ tournaments in 70+ countries.
 
 **Base URL:** `https://tourneyradar-api.vercel.app`
 
@@ -161,15 +161,15 @@ GET /v1/stats
 ```json
 {
   "data": {
-    "total": 12989,
-    "upcoming": 1620,
-    "countries": 46,
+    "total": 14603,
+    "upcoming": 1390,
+    "countries": 70,
     "byCategory": {
-      "Classical": 230,
-      "Rapid": 11884,
-      "Blitz": 875
+      "Classical": 3479,
+      "Rapid": 7912,
+      "Blitz": 1809
     },
-    "lastScrapedAt": "2026-08-23T03:31:29.081+00:00"
+    "lastScrapedAt": "2026-09-13T07:39:58.407+00:00"
   }
 }
 ```
