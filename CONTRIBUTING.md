@@ -43,9 +43,9 @@ scripts/        # One-off scripts (not part of the API)
 
 1. Create or edit a file in `routes/`.
 2. Register the route in the main server file.
-3. Follow the existing pagination envelope — responses use `{ data, meta }`.
+3. Follow the existing pagination envelope: responses use `{ data, meta }`.
 4. Use the shared Supabase client from `lib/supabase.ts`.
-5. Validate query params before passing to Supabase — no raw user input in filters.
+5. Validate query params before passing to Supabase: no raw user input in filters.
 
 ---
 
@@ -60,10 +60,10 @@ scripts/        # One-off scripts (not part of the API)
 
 ## Code style
 
-- Strict TypeScript — all code must pass `npm run build`
-- No `any` — use `unknown` and narrow, or define a proper interface
-- No hardcoded secrets — all values via environment variables
-- No `console.log` in `routes/` or `lib/` — use the logger if one exists, or omit
+- Strict TypeScript: all code must pass `npm run build`
+- No `any`: use `unknown` and narrow, or define a proper interface
+- No hardcoded secrets: all values via environment variables
+- No `console.log` in `routes/` or `lib/`: use the logger if one exists, or omit
 
 ---
 
@@ -96,7 +96,7 @@ docs: add setup instructions to CONTRIBUTING.md
 
 ## PR guidelines
 
-- One PR per change — keep scope tight
+- One PR per change: keep scope tight
 - Reference the issue your PR closes: `Closes #N`
 - Mark as draft until the work is complete and tested
 - AI-assisted PRs are welcome, provided you have reviewed and tested the output
