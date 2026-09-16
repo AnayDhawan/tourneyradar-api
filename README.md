@@ -12,6 +12,10 @@ New here? **[Getting Started](GETTING_STARTED.md)** covers local setup, deployme
 ![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue)
 ![Status](https://img.shields.io/badge/status-live-brightgreen)
 
+<p align="center">
+  <img src="./docs/media/demo.gif" alt="TourneyRadar API Demo" width="900" />
+</p>
+
 ---
 
 ## Endpoints
