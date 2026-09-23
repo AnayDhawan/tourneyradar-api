@@ -119,16 +119,16 @@ describe('looksLikeKey', () => {
 describe('resolveKey', () => {
   it('resolves a live key to its tier', async () => {
     maybeSingle.mockResolvedValue({
-      data: { id: 'abc', name: 'Test', tier: 'pro', revoked_at: null },
+      data: { id: 'abc', name: 'Test', tier: 'bulk', revoked_at: null },
       error: null,
     })
     const record = await resolveKey(generateKey().key)
-    expect(record).toEqual({ id: 'abc', name: 'Test', tier: 'pro', revoked: false })
+    expect(record).toEqual({ id: 'abc', name: 'Test', tier: 'bulk', revoked: false })
   })
 
   it('refuses a revoked key', async () => {
     maybeSingle.mockResolvedValue({
-      data: { id: 'abc', name: 'Test', tier: 'pro', revoked_at: '2026-09-01T00:00:00Z' },
+      data: { id: 'abc', name: 'Test', tier: 'bulk', revoked_at: '2026-09-01T00:00:00Z' },
       error: null,
     })
     expect(await resolveKey(generateKey().key)).toBeNull()

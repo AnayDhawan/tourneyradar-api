@@ -192,9 +192,9 @@ earlier in-memory limiter that didn't
 |---|---|---|
 | `anonymous` | 100 | Nothing. This is the default and always will be. |
 | `free` | 600 | Ask for a key. |
-| `pro` | 6000 | Ask, and say what you are building. |
+| `bulk` | 6000 | Ask, and say what you are building. |
 
-**A key raises your ceiling. It does not unlock data.** Every endpoint except
+**Every tier is free and no tier costs money.** A key raises your ceiling; it does not unlock data and it is not a plan. Every endpoint except
 `/v1/usage` works exactly the same with or without one, and that will not
 change: this is a public dataset.
 

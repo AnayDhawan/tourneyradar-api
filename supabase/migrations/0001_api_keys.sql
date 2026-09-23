@@ -31,7 +31,7 @@ create table if not exists api_keys (
     -- and a revoked key cannot be silently reissued to someone else.
     revoked_at   timestamptz,
 
-    constraint api_keys_tier_known check (tier in ('free', 'pro')),
+    constraint api_keys_tier_known check (tier in ('free', 'bulk')),
     constraint api_keys_name_not_blank check (length(trim(name)) > 0)
 );
 

@@ -9,9 +9,13 @@
  * tournament data, so the limit exists to stop one runaway script exhausting
  * a free-tier backend for everyone, not to meter a product. If a legitimate
  * user hits a ceiling, the ceiling is wrong.
+ *
+ * No tier costs money and none is planned to. The names say what the tier is
+ * for, not what it costs: an earlier draft called the top one "pro", which
+ * reads as a paid plan on an API that is free and means to stay that way.
  */
 
-export const TIERS = ['anonymous', 'free', 'pro'] as const;
+export const TIERS = ['anonymous', 'free', 'bulk'] as const;
 export type Tier = (typeof TIERS)[number];
 
 export type TierLimit = {
@@ -27,11 +31,11 @@ export const TIER_LIMITS: Record<Tier, TierLimit> = {
   },
   free: {
     perMinute: 600,
-    description: 'A free key. Enough to back a site or a bot without thinking about it.',
+    description: 'A key. Free, and enough to back a site or a bot without thinking about it.',
   },
-  pro: {
+  bulk: {
     perMinute: 6000,
-    description: 'For a service doing bulk or high-frequency work. Ask if you need it.',
+    description: 'For bulk or high-frequency work. Also free, just ask and say what you are building.',
   },
 };
 

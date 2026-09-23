@@ -229,12 +229,12 @@ describe('tiers (issue #28)', () => {
 
   it('gives a valid key its own tier and ceiling', async () => {
     live()
-    mockResolveKey.mockResolvedValue({ id: 'key-1', name: 'Test', tier: 'pro', revoked: false })
+    mockResolveKey.mockResolvedValue({ id: 'key-1', name: 'Test', tier: 'bulk', revoked: false })
 
     const app = await buildApp()
     const res = await app.request('/', { headers: { authorization: 'Bearer tr_live_x' } })
 
-    expect(res.headers.get('X-RateLimit-Tier')).toBe('pro')
+    expect(res.headers.get('X-RateLimit-Tier')).toBe('bulk')
     expect(slidingWindowCalls[0][0]).toBe(6000)
   })
 
@@ -312,7 +312,7 @@ describe('tiers (issue #28)', () => {
 
     mockResolveKey.mockResolvedValue(null)
     await app.request('/')
-    mockResolveKey.mockResolvedValue({ id: 'key-1', name: 'Test', tier: 'pro', revoked: false })
+    mockResolveKey.mockResolvedValue({ id: 'key-1', name: 'Test', tier: 'bulk', revoked: false })
     await app.request('/', { headers: { authorization: 'Bearer tr_live_x' } })
 
     // Two limiters built, with different ceilings. One shared instance would
@@ -323,12 +323,12 @@ describe('tiers (issue #28)', () => {
   it('still reports the tier when limiting is switched off', async () => {
     delete process.env.UPSTASH_REDIS_REST_URL
     delete process.env.UPSTASH_REDIS_REST_TOKEN
-    mockResolveKey.mockResolvedValue({ id: 'key-1', name: 'Test', tier: 'pro', revoked: false })
+    mockResolveKey.mockResolvedValue({ id: 'key-1', name: 'Test', tier: 'bulk', revoked: false })
 
     const app = await buildApp()
     const res = await app.request('/', { headers: { authorization: 'Bearer tr_live_x' } })
 
     expect(res.status).toBe(200)
-    expect(res.headers.get('X-RateLimit-Tier')).toBe('pro')
+    expect(res.headers.get('X-RateLimit-Tier')).toBe('bulk')
   })
 })

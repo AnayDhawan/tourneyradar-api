@@ -88,7 +88,7 @@ describe('GET /v1/usage', () => {
   })
 
   it('reports zero today rather than omitting it when nothing was used', async () => {
-    mockResolveKey.mockResolvedValue({ id: 'key-1', name: 'Test key', tier: 'pro', revoked: false })
+    mockResolveKey.mockResolvedValue({ id: 'key-1', name: 'Test key', tier: 'bulk', revoked: false })
     usageRows.data = [{ day: '2026-09-01', requests: 5 }]
 
     const body = await (await app.request('/v1/usage', {
