@@ -9,13 +9,34 @@ vi.mock('@upstash/redis', () => ({
   },
 }))
 
+const mockResolveKey = vi.fn()
+const mockRecordUse = vi.fn()
+const slidingWindowCalls: Array<[number, string]> = []
+
 vi.mock('@upstash/ratelimit', () => ({
   Ratelimit: class {
     limit = mockLimit
-    static slidingWindow(_tokens: number, _window: string) {
+    static slidingWindow(tokens: number, window: string) {
+      slidingWindowCalls.push([tokens, window])
       return {}
     }
   },
+}))
+
+// The middleware resolves an API key before choosing a tier (issue #28).
+// Stubbed here so these tests stay about limiting rather than about Supabase.
+vi.mock('../lib/apiKeys', () => ({
+  keyFromHeaders: (headers: { get(name: string): string | null }) => {
+    const authorization = headers.get('authorization')
+    if (authorization) {
+      const match = /^Bearer\s+(.+)$/i.exec(authorization.trim())
+      if (match) return match[1].trim()
+    }
+    const header = headers.get('x-api-key')
+    return header ? header.trim() : null
+  },
+  resolveKey: (key: string) => mockResolveKey(key),
+  recordUse: (id: string) => mockRecordUse(id),
 }))
 
 const ORIGINAL_ENV = { ...process.env }
@@ -33,6 +54,10 @@ async function buildApp() {
 beforeEach(() => {
   vi.resetModules()
   mockLimit.mockReset()
+  mockResolveKey.mockReset()
+  mockResolveKey.mockResolvedValue(null)
+  mockRecordUse.mockReset()
+  slidingWindowCalls.length = 0
   process.env = { ...ORIGINAL_ENV }
 })
 
@@ -78,7 +103,11 @@ describe('rate limit middleware', () => {
     expect(res.headers.get('Retry-After')).toBeTruthy()
 
     const body = await res.json()
-    expect(body).toEqual({ error: 'Too many requests', status: 429 })
+    expect(body.error).toBe('Too many requests')
+    expect(body.status).toBe(429)
+    // A refused anonymous caller is told the thing that would help.
+    expect(body.tier).toBe('anonymous')
+    expect(body.hint).toContain('API key')
   })
 
   it('fails open when the store errors', async () => {
@@ -179,5 +208,127 @@ describe('rateLimitKey', () => {
     const a = await key({ 'x-forwarded-for': 'not:an:address:at:all:x:y:z' })
     const b = await key({ 'x-forwarded-for': 'also:not:an:address:q:r:s:t' })
     expect(a).not.toBe(b)
+  })
+})
+
+describe('tiers (issue #28)', () => {
+  const live = () => {
+    process.env.UPSTASH_REDIS_REST_URL = 'https://example.upstash.io'
+    process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token'
+    mockLimit.mockResolvedValue({ success: true, limit: 600, remaining: 599, reset: Date.now() + 60_000 })
+  }
+
+  it('treats a request with no key as anonymous', async () => {
+    live()
+    const app = await buildApp()
+    const res = await app.request('/')
+
+    expect(res.headers.get('X-RateLimit-Tier')).toBe('anonymous')
+    expect(slidingWindowCalls[0][0]).toBe(100)
+  })
+
+  it('gives a valid key its own tier and ceiling', async () => {
+    live()
+    mockResolveKey.mockResolvedValue({ id: 'key-1', name: 'Test', tier: 'pro', revoked: false })
+
+    const app = await buildApp()
+    const res = await app.request('/', { headers: { authorization: 'Bearer tr_live_x' } })
+
+    expect(res.headers.get('X-RateLimit-Tier')).toBe('pro')
+    expect(slidingWindowCalls[0][0]).toBe(6000)
+  })
+
+  it('counts a keyed request against the key, not the address', async () => {
+    live()
+    mockResolveKey.mockResolvedValue({ id: 'key-1', name: 'Test', tier: 'free', revoked: false })
+
+    const app = await buildApp()
+    await app.request('/', {
+      headers: { authorization: 'Bearer tr_live_x', 'x-forwarded-for': '203.0.113.4' },
+    })
+
+    // A team behind one address should not compete with itself, and a key
+    // should stay within its own budget wherever it is used from.
+    expect(mockLimit.mock.calls[0][0]).toBe('key:key-1')
+  })
+
+  it('gives one key the same bucket from two different addresses', async () => {
+    live()
+    mockResolveKey.mockResolvedValue({ id: 'key-1', name: 'Test', tier: 'free', revoked: false })
+
+    const app = await buildApp()
+    await app.request('/', {
+      headers: { authorization: 'Bearer tr_live_x', 'x-forwarded-for': '203.0.113.4' },
+    })
+    await app.request('/', {
+      headers: { authorization: 'Bearer tr_live_x', 'x-forwarded-for': '198.51.100.9' },
+    })
+
+    expect(mockLimit.mock.calls[0][0]).toBe(mockLimit.mock.calls[1][0])
+  })
+
+  it('falls back to anonymous for a rejected key rather than refusing the request', async () => {
+    live()
+    // Unknown, revoked and malformed keys all resolve to null. The API is
+    // keyless, so a bad key means no better ceiling than anyone else, not 401.
+    mockResolveKey.mockResolvedValue(null)
+
+    const app = await buildApp()
+    const res = await app.request('/', { headers: { authorization: 'Bearer tr_live_revoked' } })
+
+    expect(res.status).toBe(200)
+    expect(res.headers.get('X-RateLimit-Tier')).toBe('anonymous')
+    expect(slidingWindowCalls[0][0]).toBe(100)
+  })
+
+  it('never returns 401 for a bad key, which would leak whether it is live', async () => {
+    live()
+    mockResolveKey.mockResolvedValue(null)
+
+    const app = await buildApp()
+    const res = await app.request('/', { headers: { 'x-api-key': 'tr_live_stolen' } })
+
+    expect(res.status).not.toBe(401)
+    expect(res.status).not.toBe(403)
+  })
+
+  it('records usage for a keyed request and not for an anonymous one', async () => {
+    live()
+    mockResolveKey.mockResolvedValue({ id: 'key-1', name: 'Test', tier: 'free', revoked: false })
+
+    const app = await buildApp()
+    await app.request('/', { headers: { authorization: 'Bearer tr_live_x' } })
+    expect(mockRecordUse).toHaveBeenCalledWith('key-1')
+
+    mockRecordUse.mockReset()
+    mockResolveKey.mockResolvedValue(null)
+    await app.request('/')
+    expect(mockRecordUse).not.toHaveBeenCalled()
+  })
+
+  it('keeps a separate window per tier', async () => {
+    live()
+    const app = await buildApp()
+
+    mockResolveKey.mockResolvedValue(null)
+    await app.request('/')
+    mockResolveKey.mockResolvedValue({ id: 'key-1', name: 'Test', tier: 'pro', revoked: false })
+    await app.request('/', { headers: { authorization: 'Bearer tr_live_x' } })
+
+    // Two limiters built, with different ceilings. One shared instance would
+    // give every tier whichever limit happened to be constructed first.
+    expect(slidingWindowCalls.map((c) => c[0]).sort((a, b) => a - b)).toEqual([100, 6000])
+  })
+
+  it('still reports the tier when limiting is switched off', async () => {
+    delete process.env.UPSTASH_REDIS_REST_URL
+    delete process.env.UPSTASH_REDIS_REST_TOKEN
+    mockResolveKey.mockResolvedValue({ id: 'key-1', name: 'Test', tier: 'pro', revoked: false })
+
+    const app = await buildApp()
+    const res = await app.request('/', { headers: { authorization: 'Bearer tr_live_x' } })
+
+    expect(res.status).toBe(200)
+    expect(res.headers.get('X-RateLimit-Tier')).toBe('pro')
   })
 })

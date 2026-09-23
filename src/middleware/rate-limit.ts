@@ -1,11 +1,13 @@
 import type { MiddlewareHandler } from 'hono'
 import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
+import { keyFromHeaders, recordUse, resolveKey } from '../lib/apiKeys'
+import { limitFor, type Tier } from '../lib/tiers'
 
 // Cache hits never reach this middleware at all, they're served at the edge
 // before the request gets here, so there is nothing to exempt in code.
 
-function buildRatelimit(): Ratelimit | null {
+function redis(): Redis | null {
   const url = process.env.UPSTASH_REDIS_REST_URL
   const token = process.env.UPSTASH_REDIS_REST_TOKEN
 
@@ -13,21 +15,31 @@ function buildRatelimit(): Ratelimit | null {
   // announce enforcement in the CHANGELOG before it actually turns on in
   // production: the code ships disabled until the env vars are set.
   if (!url || !token) return null
-
-  return new Ratelimit({
-    redis: new Redis({ url, token }),
-    // Generous default per #19: 100 requests per minute per IP.
-    limiter: Ratelimit.slidingWindow(100, '1 m'),
-    analytics: false,
-    prefix: 'tourneyradar-api',
-  })
+  return new Redis({ url, token })
 }
 
-let ratelimit: Ratelimit | null | undefined
+// One limiter per tier (issue #28). They cannot share a window: the whole point
+// of a tier is a different ceiling, and a single Ratelimit instance carries one.
+// Separate prefixes also mean a key's budget is its own rather than shared with
+// every anonymous caller behind the same address.
+const limiters = new Map<Tier, Ratelimit | null>()
+let store: Redis | null | undefined
 
-function getRatelimit(): Ratelimit | null {
-  if (ratelimit === undefined) ratelimit = buildRatelimit()
-  return ratelimit
+function limiterFor(tier: Tier): Ratelimit | null {
+  if (store === undefined) store = redis()
+  if (!store) return null
+
+  const existing = limiters.get(tier)
+  if (existing !== undefined) return existing
+
+  const limiter = new Ratelimit({
+    redis: store,
+    limiter: Ratelimit.slidingWindow(limitFor(tier), '1 m'),
+    analytics: false,
+    prefix: `tourneyradar-api:${tier}`,
+  })
+  limiters.set(tier, limiter)
+  return limiter
 }
 
 function clientIp(headers: { get(name: string): string | null }): string {
@@ -135,13 +147,27 @@ export function rateLimitKey(headers: { get(name: string): string | null }): str
 }
 
 export const rateLimitMiddleware: MiddlewareHandler = async (c, next) => {
-  const limiter = getRatelimit()
+  // A key raises the ceiling; it never gates access. An absent, malformed,
+  // unknown or revoked key all resolve the same way: this is an anonymous
+  // request. Rejecting a bad key with a 401 would also turn the endpoint into
+  // a free oracle for checking whether a stolen key still works.
+  const presented = keyFromHeaders(c.req.raw.headers)
+  const record = presented ? await resolveKey(presented) : null
+  const tier: Tier = record?.tier ?? 'anonymous'
+
+  // Keyed requests count against the key, so a team behind one address is not
+  // competing with itself, and a key stays within its own budget wherever it
+  // is used from.
+  const bucket = record ? `key:${record.id}` : rateLimitKey(c.req.raw.headers)
+
+  c.header('X-RateLimit-Tier', tier)
+  if (record) recordUse(record.id)
+
+  const limiter = limiterFor(tier)
   if (!limiter) return next()
 
-  const key = rateLimitKey(c.req.raw.headers)
-
   try {
-    const { success, limit, remaining, reset } = await limiter.limit(key)
+    const { success, limit, remaining, reset } = await limiter.limit(bucket)
 
     c.header('X-RateLimit-Limit', String(limit))
     c.header('X-RateLimit-Remaining', String(remaining))
@@ -149,7 +175,18 @@ export const rateLimitMiddleware: MiddlewareHandler = async (c, next) => {
     if (!success) {
       const retryAfter = Math.max(0, Math.ceil((reset - Date.now()) / 1000))
       c.header('Retry-After', String(retryAfter))
-      return c.json({ error: 'Too many requests', status: 429 }, 429)
+      return c.json(
+        {
+          error: 'Too many requests',
+          status: 429,
+          tier,
+          hint:
+            tier === 'anonymous'
+              ? 'An API key raises this limit. See /docs.'
+              : 'Slow down, or ask for a higher tier.',
+        },
+        429
+      )
     }
   } catch (err) {
     // A store outage should not take the whole API down. Fail open: let the
@@ -163,5 +200,6 @@ export const rateLimitMiddleware: MiddlewareHandler = async (c, next) => {
 // Exposed for tests, which need to force a rebuild after mocking env vars
 // and the Upstash clients.
 export function _resetRatelimitForTests() {
-  ratelimit = undefined
+  store = undefined
+  limiters.clear()
 }

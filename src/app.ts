@@ -5,6 +5,7 @@ import tournaments from './routes/tournaments'
 import countries from './routes/countries'
 import search from './routes/search'
 import stats from './routes/stats'
+import usage from './routes/usage'
 
 // The app is built here and served in index.ts, so tests can import it and
 // drive it through app.request() without binding a port.
@@ -25,6 +26,7 @@ app.get('/', (c) => c.json({
     'GET /v1/countries',
     'GET /v1/search?q=',
     'GET /v1/stats',
+    'GET /v1/usage',
   ]
 }))
 
@@ -32,6 +34,17 @@ app.route('/v1/tournaments', tournaments)
 app.route('/v1/countries', countries)
 app.route('/v1/search', search)
 app.route('/v1/stats', stats)
+app.route('/v1/usage', usage)
+
+// Declared so /v1/usage's security requirement resolves. Every other endpoint
+// stays keyless: a key raises your rate limit, it does not unlock data.
+app.openAPIRegistry.registerComponent('securitySchemes', 'bearerAuth', {
+  type: 'http',
+  scheme: 'bearer',
+  description:
+    'An optional TourneyRadar API key. Sending one raises your rate limit; ' +
+    'every data endpoint works without it. Required only by /v1/usage.',
+})
 
 // Generated from the zod schemas each route already validates against, so the
 // document cannot drift from what actually validates the way the hand-written
@@ -46,6 +59,7 @@ app.doc31('/openapi.json', {
   },
   servers: [{ url: 'https://tourneyradar-api.vercel.app', description: 'Production' }],
 })
+
 
 // @scalar/hono-api-reference is ESM-only. Vercel's Node.js runtime can't
 // require() an ESM package (ERR_REQUIRE_ESM), and since this CommonJS build

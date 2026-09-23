@@ -2,6 +2,7 @@
 
 A free, open-source REST API for over-the-board chess tournament data. 
 No authentication required. No API key needed. This API currently serves 14,000+ tournaments in 70+ countries.
+An optional key raises your rate limit; it never unlocks data. See [Rate limiting](#rate-limiting) and the [TypeScript client](clients/typescript).
 
 **Base URL:** `https://tourneyradar-api.vercel.app`
 
@@ -182,15 +183,57 @@ GET /v1/stats
 
 ## Rate limiting
 
-100 requests per minute per IP, backed by [Upstash Redis](https://upstash.com)
-rather than process memory, so the limit actually holds across serverless
-invocations. This replaces an earlier in-memory limiter that didn't
+Backed by [Upstash Redis](https://upstash.com) rather than process memory, so
+the limit actually holds across serverless invocations. This replaces an
+earlier in-memory limiter that didn't
 ([#19](https://github.com/AnayDhawan/tourneyradar-api/issues/19)).
 
-Every response carries `X-RateLimit-Limit` and `X-RateLimit-Remaining`. Once
-exceeded, requests get `429` with a `Retry-After` header. If the Upstash store
-is unreachable, the API fails open: requests pass through unlimited rather
-than the whole API going down.
+| Tier | Requests / minute | How to get it |
+|---|---|---|
+| `anonymous` | 100 | Nothing. This is the default and always will be. |
+| `free` | 600 | Ask for a key. |
+| `pro` | 6000 | Ask, and say what you are building. |
+
+**A key raises your ceiling. It does not unlock data.** Every endpoint except
+`/v1/usage` works exactly the same with or without one, and that will not
+change: this is a public dataset.
+
+Send it either way:
+
+```bash
+curl -H "Authorization: Bearer tr_live_..." https://tourneyradar-api.vercel.app/v1/stats
+curl -H "X-API-Key: tr_live_..." https://tourneyradar-api.vercel.app/v1/stats
+```
+
+An unknown, revoked or malformed key is treated as no key rather than being
+rejected, so a stale key degrades to the anonymous limit instead of breaking
+your integration. It also means this API cannot be used to test whether a
+stolen key is still live.
+
+Every response carries `X-RateLimit-Limit`, `X-RateLimit-Remaining` and
+`X-RateLimit-Tier`. Once exceeded, requests get `429` with a `Retry-After`
+header. If the Upstash store is unreachable, the API fails open: requests pass
+through unlimited rather than the whole API going down.
+
+Keyed requests are counted against the key rather than the address, so a team
+behind one office IP does not compete with itself, and a key keeps its own
+budget wherever it runs.
+
+### Checking your usage
+
+```bash
+curl -H "Authorization: Bearer tr_live_..." https://tourneyradar-api.vercel.app/v1/usage
+```
+
+Returns daily counts for the last 30 days and the ceiling for your tier. It
+reports your own key and has no parameter for looking at anyone else's.
+
+### Keys are stored hashed
+
+Only a SHA-256 of each key is stored, alongside a short display prefix. The
+plaintext is shown once at issuance and cannot be recovered, so a lost key is
+reissued rather than looked up, and a leak of the table hands over nothing
+usable.
 
 The limiter only activates once `UPSTASH_REDIS_REST_URL` and
 `UPSTASH_REDIS_REST_TOKEN` are configured on the deployment (see
