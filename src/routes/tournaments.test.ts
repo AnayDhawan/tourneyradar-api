@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { createSupabaseMock, sampleTournament, type MockResult } from '../test/supabase-mock'
+import { createSupabaseMock, sampleTournament, type MockResult, type QueryCall } from '../test/supabase-mock'
 
 let mockResult: MockResult = { data: [], error: null, count: 0 }
+let queryCalls: QueryCall[] = []
 
 vi.mock('../lib/supabase', () => ({
   get supabase() {
-    return createSupabaseMock(mockResult)
+    return createSupabaseMock(mockResult, queryCalls)
   },
 }))
 
@@ -14,6 +15,7 @@ import app from '../app'
 
 beforeEach(() => {
   mockResult = { data: [sampleTournament], error: null, count: 1 }
+  queryCalls = []
 })
 
 describe('GET /v1/tournaments', () => {
@@ -55,6 +57,75 @@ describe('GET /v1/tournaments', () => {
   it('accepts a known category', async () => {
     const res = await app.request('/v1/tournaments?category=Blitz')
     expect(res.status).toBe(200)
+  })
+
+  it.each([true, false])('applies fide_rated=%s as a boolean filter', async (value) => {
+    const res = await app.request(`/v1/tournaments?fide_rated=${value}`)
+    expect(res.status).toBe(200)
+    expect(queryCalls.filter(({ method }) => method === 'eq')).toEqual([
+      { method: 'eq', args: ['status', 'published'] },
+      { method: 'eq', args: ['fide_rated', value] },
+    ])
+  })
+
+  it.each([true, false])('uses the expected date filter for upcoming=%s', async (value) => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-10-23T12:00:00Z'))
+    try {
+      const res = await app.request(`/v1/tournaments?upcoming=${value}`)
+      expect(res.status).toBe(200)
+      expect(queryCalls.filter(({ method }) => method === 'gte')).toEqual(
+        value ? [{ method: 'gte', args: ['date', '2026-10-23'] }] : []
+      )
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('leaves boolean filters unset when omitted', async () => {
+    const res = await app.request('/v1/tournaments')
+    expect(res.status).toBe(200)
+    expect(queryCalls.filter(({ method }) => method === 'eq' || method === 'gte')).toEqual([
+      { method: 'eq', args: ['status', 'published'] },
+    ])
+  })
+
+  describe.each(['fide_rated', 'upcoming'])('%s validation', (param) => {
+    it.each(['banana', '0', '1', '', 'TRUE', 'FALSE', ' true', 'false '])('rejects %j before querying', async (value) => {
+      const res = await app.request(`/v1/tournaments?${param}=${encodeURIComponent(value)}`)
+      expect(res.status).toBe(400)
+      expect(queryCalls).toEqual([])
+    })
+
+    it.each(['true', 'false'])('rejects repeated values ending in %s', async (value) => {
+      const res = await app.request(`/v1/tournaments?${param}=false&${param}=${value}`)
+      expect(res.status).toBe(400)
+      expect(queryCalls).toEqual([])
+    })
+  })
+
+  it('preserves other filters and pagination alongside false booleans', async () => {
+    mockResult.count = 21
+    const res = await app.request(
+      '/v1/tournaments?fide_rated=false&upcoming=false&country=in&category=Blitz' +
+      '&date_from=2026-01-01&date_to=2026-12-31&organizer=Chess&limit=10&page=2'
+    )
+    expect(res.status).toBe(200)
+    expect(queryCalls).toEqual([
+      { method: 'select', args: ['*', { count: 'exact' }] },
+      { method: 'eq', args: ['status', 'published'] },
+      { method: 'order', args: ['date', { ascending: true }] },
+      { method: 'range', args: [10, 19] },
+      { method: 'eq', args: ['country_code', 'IN'] },
+      { method: 'eq', args: ['category', 'Blitz'] },
+      { method: 'eq', args: ['fide_rated', false] },
+      { method: 'gte', args: ['date', '2026-01-01'] },
+      { method: 'lte', args: ['date', '2026-12-31'] },
+      { method: 'ilike', args: ['organizer_name', '%Chess%'] },
+    ])
+    const body = await res.json()
+    expect(body.data).toEqual([sampleTournament])
+    expect(body.meta).toEqual({ page: 2, limit: 10, total: 21, hasMore: true })
   })
 
   it('rejects a malformed date_from', async () => {

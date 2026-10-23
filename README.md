@@ -31,10 +31,13 @@ Returns a paginated list of chess tournaments.
 |-----------|------|-------------|
 | `country` | string | 2-letter country code (e.g. `IN`, `DE`, `US`) |
 | `category` | string | `Classical`, `Rapid`, or `Blitz` |
-| `upcoming` | boolean | `true` to return only future tournaments |
-| `fide_rated` | boolean | `true` to return only FIDE rated tournaments |
+| `upcoming` | boolean | `true` to return only future tournaments; `false` or omitted skips this filter |
+| `fide_rated` | boolean | `true` for FIDE rated tournaments, `false` for non-FIDE tournaments; omitted for both |
 | `limit` | number | Results per page (1–100, default 50) |
 | `page` | number | Page number (default 1) |
+
+`upcoming` and `fide_rated` accept a single lowercase `true` or `false`.
+Other values, empty values, and repeated parameters return 400.
 
 **Example:**
 GET /v1/tournaments?country=IN&upcoming=true&limit=5

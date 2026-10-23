@@ -7,11 +7,18 @@ const tournaments = new OpenAPIHono()
 
 const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/
 
+// Parse query strings explicitly while keeping the OpenAPI schema boolean.
+const booleanQuerySchema = z.preprocess((value) => {
+  if (value === 'true') return true
+  if (value === 'false') return false
+  return value
+}, z.boolean())
+
 const listQuerySchema = z.object({
   country: z.string().length(2).toUpperCase().optional().openapi({ example: 'IN', description: '2-letter ISO country code' }),
   category: z.enum(['Classical', 'Rapid', 'Blitz']).optional().openapi({ example: 'Classical' }),
-  upcoming: z.coerce.boolean().optional().openapi({ example: true }),
-  fide_rated: z.coerce.boolean().optional().openapi({ example: true }),
+  upcoming: booleanQuerySchema.optional().openapi({ example: true }),
+  fide_rated: booleanQuerySchema.optional().openapi({ example: true }),
   date_from: z.string().regex(ISO_DATE_REGEX, 'date_from must be an ISO date (YYYY-MM-DD)').optional().openapi({ example: '2026-01-01' }),
   date_to: z.string().regex(ISO_DATE_REGEX, 'date_to must be an ISO date (YYYY-MM-DD)').optional().openapi({ example: '2026-12-31' }),
   organizer: z.string().min(1).optional().openapi({ example: 'Chess Association' }),
