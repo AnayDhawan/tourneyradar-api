@@ -7,6 +7,10 @@ All notable changes to this project are documented here. Format based on
 ## [Unreleased]
 
 ### Fixed
+- `fide_rated=false` now selects non-FIDE tournaments, and `upcoming=false`
+  leaves dates unrestricted unless an explicit date range is supplied. Both
+  parameters accept only a single lowercase `true` or `false`; other values
+  return 400 ([#31](https://github.com/AnayDhawan/tourneyradar-api/issues/31)).
 - Vercel deployment was broken by the OpenAPI migration below: Vercel's
   dashboard Framework Preset is set to `hono`, which auto-detects an
   entrypoint by scanning for a literal `import { Hono } from 'hono'` in a

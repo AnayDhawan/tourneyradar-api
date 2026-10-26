@@ -38,6 +38,20 @@ describe('GET /openapi.json', () => {
       ])
     )
   })
+
+  it.each(['fide_rated', 'upcoming'])('keeps %s documented as an optional boolean', async (name) => {
+    const res = await app.request('/openapi.json')
+    const doc = await res.json()
+    const parameter = doc.paths['/v1/tournaments'].get.parameters.find(
+      (param: { name: string }) => param.name === name
+    )
+    expect(parameter).toMatchObject({
+      name,
+      in: 'query',
+      required: false,
+      schema: { type: 'boolean', example: true },
+    })
+  })
 })
 
 describe('GET /docs', () => {

@@ -12,7 +12,12 @@ export interface MockResult {
   count?: number
 }
 
-export function createQueryChain(result: MockResult) {
+export interface QueryCall {
+  method: string
+  args: unknown[]
+}
+
+export function createQueryChain(result: MockResult, calls: QueryCall[] = []) {
   const chain: Record<string, unknown> = {}
 
   const handler: ProxyHandler<Record<string, unknown>> = {
@@ -21,7 +26,10 @@ export function createQueryChain(result: MockResult) {
         // Awaiting the chain resolves to the configured result.
         return (resolve: (value: MockResult) => unknown) => resolve(result)
       }
-      return () => proxy
+      return (...args: unknown[]) => {
+        calls.push({ method: String(prop), args })
+        return proxy
+      }
     },
   }
 
@@ -29,8 +37,8 @@ export function createQueryChain(result: MockResult) {
   return proxy
 }
 
-export function createSupabaseMock(result: MockResult) {
-  return { from: vi.fn(() => createQueryChain(result)) }
+export function createSupabaseMock(result: MockResult, calls: QueryCall[] = []) {
+  return { from: vi.fn(() => createQueryChain(result, calls)) }
 }
 
 export const sampleTournament = {
