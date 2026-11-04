@@ -56,6 +56,20 @@ describe('GET /v1/stats', () => {
     expect(second.status).toBe(304)
   })
 
+  it('counts countries past the first 1000 rows (issue #33)', async () => {
+    const fullPage = Array.from({ length: 1000 }, () => ({ country_code: 'DE' }))
+    mockResult = {
+      data: [{ scraped_at: '2026-08-24T03:12:00Z' }],
+      error: null,
+      count: 42,
+      pages: [fullPage, [{ country_code: 'NP' }, { country_code: 'IN' }]],
+    }
+
+    const res = await app.request('/v1/stats')
+    const body = await res.json()
+    expect(body.data.countries).toBe(3)
+  })
+
   it('returns 500 when a query fails', async () => {
     mockResult = { data: null, error: { message: 'boom' }, count: 0 }
     const res = await app.request('/v1/stats')

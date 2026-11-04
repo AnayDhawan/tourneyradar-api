@@ -2,6 +2,7 @@ import { OpenAPIHono, createRoute } from '@hono/zod-openapi'
 import { supabase } from '../lib/supabase'
 import { arrayResponseSchema, countrySchema, errorSchema } from '../schemas'
 import { CACHE_CONTROL, etagFor } from '../lib/cache'
+import { selectAllPages } from '../lib/paged'
 
 const countries = new OpenAPIHono()
 
@@ -31,11 +32,17 @@ const listRoute = createRoute({
 })
 
 countries.openapi(listRoute, async (c) => {
-  const { data, error } = await supabase
-    .from('tournaments')
-    .select('country_code, country')
-    .eq('status', 'published')
-    .not('country_code', 'is', null)
+  // Paged: one select stops at 1000 of the ~18,000 rows (issue #33).
+  const { data, error } = await selectAllPages<{ country_code: string | null; country: string | null }>(
+    (from, to) =>
+      supabase
+        .from('tournaments')
+        .select('country_code, country')
+        .eq('status', 'published')
+        .not('country_code', 'is', null)
+        .order('id', { ascending: true })
+        .range(from, to)
+  )
 
   if (error) {
     return c.json({ error: 'Failed to fetch countries', status: 500 }, 500)

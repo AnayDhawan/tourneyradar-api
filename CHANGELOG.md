@@ -7,6 +7,9 @@ All notable changes to this project are documented here. Format based on
 ## [Unreleased]
 
 ### Fixed
+- `/v1/countries` and `/v1/stats` reported 70 countries because each read one
+  select, which PostgREST caps at 1000 of the ~18,000 rows. Both now page
+  through the table ([#33](https://github.com/AnayDhawan/tourneyradar-api/issues/33)).
 - `fide_rated=false` now selects non-FIDE tournaments, and `upcoming=false`
   leaves dates unrestricted unless an explicit date range is supplied. Both
   parameters accept only a single lowercase `true` or `false`; other values
