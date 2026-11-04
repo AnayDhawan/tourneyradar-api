@@ -1,7 +1,7 @@
 {
   "name": "tourneyradar",
   "version": "0.1.0",
-  "description": "Typed client for the TourneyRadar API: over-the-board chess tournaments in 70+ countries.",
+  "description": "Typed client for the TourneyRadar API: over-the-board chess tournaments in 130+ countries.",
   "keywords": ["chess", "tournaments", "api-client", "tourneyradar"],
   "license": "Apache-2.0",
   "repository": {

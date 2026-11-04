@@ -1,7 +1,7 @@
 # tourneyradar
 
 Typed TypeScript client for the [TourneyRadar API](https://github.com/AnayDhawan/tourneyradar-api):
-over-the-board chess tournaments across 70+ countries.
+over-the-board chess tournaments across 130+ countries.
 
 ```bash
 npm install tourneyradar
