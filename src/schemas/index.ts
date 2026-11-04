@@ -31,7 +31,7 @@ export const tournamentSchema = z
     country_code: z.string().optional().openapi({ example: 'IN' }),
     lat: z.number().nullable().optional().openapi({ example: 13.0827 }),
     lng: z.number().nullable().optional().openapi({ example: 80.2707 }),
-    category: z.enum(['Classical', 'Rapid', 'Blitz']).openapi({ example: 'Classical' }),
+    category: z.enum(['Classical', 'Rapid', 'Blitz']).nullable().openapi({ example: 'Classical' }),
     date: z.string().openapi({ example: '2026-06-01' }),
     end_date: z.string().optional().openapi({ example: '2026-06-07' }),
     fide_rated: z.boolean().openapi({ example: true }),
@@ -41,8 +41,20 @@ export const tournamentSchema = z
     registration_link: z.string().nullable().optional(),
     source_url: z.string().optional().openapi({ example: 'https://chess-results.com/tnr1371843.aspx' }),
     status: z.string().openapi({ example: 'published' }),
+    format: z.string().nullable().optional().openapi({ example: 'Swiss' }),
+    min_rating: z.number().nullable().optional().openapi({ example: 1400 }),
+    max_rating: z.number().nullable().optional().openapi({ example: 2200 }),
+    external_link: z.string().nullable().optional(),
+    source: z.string().nullable().optional().openapi({ example: 'chess-results' }),
+    scraped_at: z.string().nullable().optional().openapi({ example: '2026-10-25T03:12:00Z' }),
   })
   .openapi('Tournament')
+
+// The columns the tournament routes select, taken from the schema so the
+// response cannot carry a key the OpenAPI document does not describe. The
+// table has ~56 columns, including organizer contact fields that are not
+// public (issue #34), so routes must never select '*'.
+export const TOURNAMENT_COLUMNS = Object.keys(tournamentSchema.shape).join(', ')
 
 export const statsSchema = z
   .object({

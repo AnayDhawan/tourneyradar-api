@@ -6,6 +6,16 @@ All notable changes to this project are documented here. Format based on
 
 ## [Unreleased]
 
+### Changed
+- Tournament objects now carry only the columns `tournamentSchema` documents,
+  instead of every table column. Undocumented keys such as `description`,
+  `venue_name`, `entry_fee` and all organizer contact fields are gone from
+  `/v1/tournaments`, `/v1/tournaments/{id}` and `/v1/search`. Six populated
+  public columns are added and documented (`format`, `min_rating`,
+  `max_rating`, `external_link`, `source`, `scraped_at`), and `category` is
+  documented as nullable, which it already was in practice
+  ([#34](https://github.com/AnayDhawan/tourneyradar-api/issues/34)).
+
 ### Fixed
 - `/v1/countries` and `/v1/stats` reported 70 countries because each read one
   select, which PostgREST caps at 1000 of the ~18,000 rows. Both now page

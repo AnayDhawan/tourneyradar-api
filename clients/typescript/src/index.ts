@@ -22,7 +22,7 @@ export type Tournament = {
   country_code?: string;
   lat?: number | null;
   lng?: number | null;
-  category: Category;
+  category: Category | null;
   date: string;
   end_date?: string;
   fide_rated: boolean;
@@ -32,6 +32,12 @@ export type Tournament = {
   registration_link?: string | null;
   source_url?: string;
   status: string;
+  format?: string | null;
+  min_rating?: number | null;
+  max_rating?: number | null;
+  external_link?: string | null;
+  source?: string | null;
+  scraped_at?: string | null;
 };
 
 export type Page<T> = {

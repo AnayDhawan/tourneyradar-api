@@ -11,6 +11,7 @@ vi.mock('../lib/supabase', () => ({
 }))
 
 import app from '../app'
+import { tournamentSchema, TOURNAMENT_COLUMNS } from '../schemas'
 
 
 beforeEach(() => {
@@ -112,7 +113,7 @@ describe('GET /v1/tournaments', () => {
     )
     expect(res.status).toBe(200)
     expect(queryCalls).toEqual([
-      { method: 'select', args: ['*', { count: 'exact' }] },
+      { method: 'select', args: [TOURNAMENT_COLUMNS, { count: 'exact' }] },
       { method: 'eq', args: ['status', 'published'] },
       { method: 'order', args: ['date', { ascending: true }] },
       { method: 'range', args: [10, 19] },
@@ -205,5 +206,30 @@ describe('GET /v1/tournaments/:id', () => {
 
     const second = await app.request('/v1/tournaments/cr_123456', { headers: { 'If-None-Match': etag! } })
     expect(second.status).toBe(304)
+  })
+})
+
+describe('tournament columns (issue #34)', () => {
+  const CONTACT_FIELDS = ['organizer_phone', 'organizer_email', 'whatsapp_group', 'organizer_contact', 'organizer_id']
+
+  function selectedColumns(): string[] {
+    const select = queryCalls.find((call) => call.method === 'select')
+    expect(select).toBeTruthy()
+    return String(select!.args[0]).split(',').map((col) => col.trim())
+  }
+
+  it.each(['/v1/tournaments', '/v1/tournaments/cr_123456', '/v1/search?q=mumbai'])(
+    '%s selects exactly the documented columns',
+    async (path) => {
+      await app.request(path)
+      const columns = selectedColumns()
+      expect(columns).not.toContain('*')
+      expect(columns.sort()).toEqual(Object.keys(tournamentSchema.shape).sort())
+      for (const field of CONTACT_FIELDS) expect(columns).not.toContain(field)
+    }
+  )
+
+  it('documents category as nullable', () => {
+    expect(tournamentSchema.shape.category.safeParse(null).success).toBe(true)
   })
 })
