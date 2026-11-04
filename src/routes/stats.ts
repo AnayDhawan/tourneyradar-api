@@ -2,6 +2,7 @@ import { OpenAPIHono, createRoute } from '@hono/zod-openapi'
 import { supabase } from '../lib/supabase'
 import { errorSchema, singleResponseSchema, statsSchema } from '../schemas'
 import { CACHE_CONTROL, etagFor } from '../lib/cache'
+import { selectAllPages } from '../lib/paged'
 
 const stats = new OpenAPIHono()
 
@@ -45,12 +46,17 @@ stats.openapi(statsRoute, async (c) => {
 
     // Just the one column PostgREST can dedupe cheaply. There is no
     // SELECT DISTINCT over PostgREST without a database function, so the
-    // set dedup happens here rather than pulling every column.
-    supabase
-      .from('tournaments')
-      .select('country_code')
-      .eq('status', 'published')
-      .not('country_code', 'is', null),
+    // set dedup happens here rather than pulling every column. Paged,
+    // because one select stops at 1000 rows (issue #33).
+    selectAllPages<{ country_code: string | null }>((from, to) =>
+      supabase
+        .from('tournaments')
+        .select('country_code')
+        .eq('status', 'published')
+        .not('country_code', 'is', null)
+        .order('id', { ascending: true })
+        .range(from, to)
+    ),
 
     Promise.all(
       TOURNAMENT_CATEGORIES.map((category) =>

@@ -1,6 +1,6 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi'
 import { supabase } from '../lib/supabase'
-import { errorSchema, paginatedResponseSchema, tournamentSchema } from '../schemas'
+import { errorSchema, paginatedResponseSchema, tournamentSchema, TOURNAMENT_COLUMNS } from '../schemas'
 import { CACHE_CONTROL, etagFor } from '../lib/cache'
 
 const search = new OpenAPIHono()
@@ -48,7 +48,7 @@ search.openapi(searchRoute, async (c) => {
 
   let query = supabase
     .from('tournaments')
-    .select('*', { count: 'exact' })
+    .select(TOURNAMENT_COLUMNS, { count: 'exact' })
     .eq('status', 'published')
     .or(
       `name.ilike.${searchPattern},organizer_name.ilike.${searchPattern},location.ilike.${searchPattern}`

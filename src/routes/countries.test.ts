@@ -55,6 +55,22 @@ describe('GET /v1/countries', () => {
     const res = await app.request('/v1/countries')
     expect(res.status).toBe(500)
   })
+
+  it('reads every page, not just the first 1000 rows (issue #33)', async () => {
+    const fullPage = Array.from({ length: 1000 }, () => ({ country_code: 'DE', country: 'Germany' }))
+    mockResult = {
+      data: null,
+      error: null,
+      pages: [fullPage, [{ country_code: 'NP', country: 'Nepal' }]],
+    }
+
+    const res = await app.request('/v1/countries')
+    const body = await res.json()
+    expect(body.data).toEqual([
+      { country_code: 'DE', country: 'Germany' },
+      { country_code: 'NP', country: 'Nepal' },
+    ])
+  })
 })
 
 describe('app shell', () => {

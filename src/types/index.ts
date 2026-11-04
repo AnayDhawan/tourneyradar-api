@@ -8,7 +8,7 @@ export type Tournament = {
   country_code?: string
   lat: number
   lng: number
-  category: string
+  category: string | null
   date: string
   end_date?: string
   fide_rated: boolean
@@ -18,6 +18,12 @@ export type Tournament = {
   registration_link: string | null
   source_url?: string
   status: string
+  format?: string | null
+  min_rating?: number | null
+  max_rating?: number | null
+  external_link?: string | null
+  source?: string | null
+  scraped_at?: string | null
 }
 
 export type ApiResponse<T> = {
