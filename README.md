@@ -10,6 +10,8 @@ An optional key raises your rate limit; it never unlocks data. See [Rate limitin
 
 New here? **[Getting Started](GETTING_STARTED.md)** covers local setup, deployment, and a first call to every endpoint.
 
+[![CI](https://github.com/AnayDhawan/tourneyradar-api/actions/workflows/ci.yml/badge.svg)](https://github.com/AnayDhawan/tourneyradar-api/actions/workflows/ci.yml)
+[![GitHub stars](https://img.shields.io/github/stars/AnayDhawan/tourneyradar-api?style=social)](https://github.com/AnayDhawan/tourneyradar-api/stargazers)
 ![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue)
 ![Status](https://img.shields.io/badge/status-live-brightgreen)
 
